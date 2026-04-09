@@ -162,8 +162,12 @@
     "exportRenderingPreview": "Рендеринг предпросмотра…",
     "createVariable": "Создать переменную",
     "styles": "Стили",
+    "libraries": "Библиотеки",
     "noLocalStyles": "Нет локальных стилей",
-    "openStyles": "Открыть стили"
+    "openStyles": "Открыть стили",
+    "noLibraries": "Нет дизайн-библиотек",
+    "openLibraries": "Открыть библиотеки",
+    "manageLibraries": "Управление библиотеками"
   },
   "pages": {
     "newPage": "Новая страница",
@@ -212,6 +216,19 @@
     "fillStyle": "Стиль заливки",
     "textStyle": "Стиль текста",
     "effectStyle": "Стиль эффекта",
-    "detachStyle": "Отвязать стиль"
+    "detachStyle": "Отвязать стиль",
+    "designLibraries": "Дизайн-библиотеки",
+    "addLibrary": "Добавить библиотеку…",
+    "removeLibrary": "Удалить библиотеку",
+    "noLibrariesYet": "Библиотеки ещё не добавлены",
+    "libraryComponents": "Компоненты",
+    "libraryVariables": "Переменные",
+    "libraryStyles": "Стили",
+    "insertComponent": "Вставить компонент",
+    "addToLocal": "Добавить в локальные",
+    "noLibraryComponents": "Нет компонентов в библиотеках",
+    "noLibraryVariables": "Нет переменных в библиотеках",
+    "noLibraryStyles": "Нет стилей в библиотеках",
+    "libraryLoadError": "Не удалось загрузить библиотеку"
   }
 }

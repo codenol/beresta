@@ -25,6 +25,7 @@ import {
   splitSegmentAt,
   prefetchFigmaSchema
 } from '@open-pencil/core'
+import { useLibraryStore } from '@/stores/library'
 
 import type {
   EditorState,
@@ -879,6 +880,7 @@ export function createEditorStore(initialGraph?: SceneGraph) {
       const imported = await readFigFile(file)
       await yieldToUI()
       editor.replaceGraph(imported)
+      useLibraryStore().enableForGraph(imported)
       editor.undo.clear()
       state.documentName = file.name.replace(/\.fig$/i, '')
       setDocumentSource(file.name, 'fig', handle, path)
@@ -989,10 +991,12 @@ export function createEditorStore(initialGraph?: SceneGraph) {
       const file = new File([blob], state.documentName + '.fig')
       const imported = await readFigFile(file)
       editor.replaceGraph(imported)
+      useLibraryStore().enableForGraph(imported)
     } else if (fileHandle) {
       const file = await fileHandle.getFile()
       const imported = await readFigFile(file)
       editor.replaceGraph(imported)
+      useLibraryStore().enableForGraph(imported)
     } else {
       return
     }

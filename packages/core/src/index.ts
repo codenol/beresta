@@ -79,6 +79,8 @@ export {
   type NamedStyle
 } from './scene-graph'
 
+export { libraryRegistry, LibraryRegistry, type LibraryManifest } from './library'
+
 export { FigmaAPI, FigmaNodeProxy, computeImageHash, type FigmaFontName } from './figma-api'
 export {
   ALL_TOOLS,

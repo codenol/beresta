@@ -80,6 +80,8 @@ function serializeVariables(
   const modeIdToGuid = new Map<string, GUID>()
   let collIdx = 0
   for (const [colId, col] of graph.variableCollections) {
+    // Skip collections injected from design libraries — they're not local
+    if (col.libraryId) continue
     const colGuid = { sessionID: 0, localID: localIdCounter.value++ }
     varIdToGuid.set(colId, colGuid)
     const colNc: KiwiNodeChange = {
@@ -136,6 +138,8 @@ function serializeStyles(
   const ncs: Record<string, unknown>[] = []
   let styleIdx = 0
   for (const style of graph.styles.values()) {
+    // Skip styles injected from design libraries — they're not local
+    if (style.libraryId) continue
     const styleGuid = { sessionID: 0, localID: localIdCounter.value++ }
     const nc: Record<string, unknown> = {
       guid: styleGuid,

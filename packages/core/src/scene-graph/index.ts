@@ -366,6 +366,8 @@ export interface SceneNode {
   textStyleId: string | null
   effectStyleId: string | null
 
+  libraryRef: { libraryId: string; itemId: string } | null
+
   pluginData: PluginDataEntry[]
   sharedPluginData: SharedPluginDataEntry[]
   pluginRelaunchData: PluginRelaunchDataEntry[]
@@ -402,6 +404,7 @@ export interface VariableCollection {
   modes: VariableCollectionMode[]
   defaultModeId: string
   variableIds: string[]
+  libraryId?: string  // set when injected from a design library; excluded from .fig export
 }
 
 // --- Named Styles ---
@@ -414,6 +417,7 @@ export interface FillStyle {
   type: 'FILL'
   description: string
   fills: Fill[]
+  libraryId?: string  // set when injected from a design library; excluded from .fig export
 }
 
 export interface TextStyle {
@@ -430,6 +434,7 @@ export interface TextStyle {
   textCase: TextCase
   textDecoration: TextDecoration
   fills: Fill[]
+  libraryId?: string
 }
 
 export interface EffectStyle {
@@ -438,6 +443,7 @@ export interface EffectStyle {
   type: 'EFFECT'
   description: string
   effects: Effect[]
+  libraryId?: string
 }
 
 export type NamedStyle = FillStyle | TextStyle | EffectStyle
@@ -549,6 +555,7 @@ function createDefaultNode(type: NodeType, overrides: Partial<SceneNode> = {}): 
     fillStyleId: null,
     textStyleId: null,
     effectStyleId: null,
+    libraryRef: null,
     pluginData: [],
     sharedPluginData: [],
     pluginRelaunchData: [],

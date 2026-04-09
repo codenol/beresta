@@ -100,6 +100,7 @@ export const panelMessages = i18n('panels', {
   typography: 'Typography',
   variables: 'Variables',
   styles: 'Styles',
+  libraries: 'Libraries',
   constraints: 'Constraints',
 
   addFill: 'Add fill',
@@ -117,6 +118,9 @@ export const panelMessages = i18n('panels', {
   openVariables: 'Open variables',
   noLocalStyles: 'No local styles',
   openStyles: 'Open styles',
+  noLibraries: 'No design libraries',
+  openLibraries: 'Open libraries',
+  manageLibraries: 'Manage libraries',
   addPage: 'Add page',
   toggleVisibility: 'Toggle visibility',
   independentCornerRadii: 'Independent corner radii',
@@ -231,5 +235,18 @@ export const dialogMessages = i18n('dialogs', {
   fillStyle: 'Fill style',
   textStyle: 'Text style',
   effectStyle: 'Effect style',
-  detachStyle: 'Detach style'
+  detachStyle: 'Detach style',
+  designLibraries: 'Design Libraries',
+  addLibrary: 'Add library…',
+  removeLibrary: 'Remove library',
+  noLibrariesYet: 'No libraries added yet',
+  libraryComponents: 'Components',
+  libraryVariables: 'Variables',
+  libraryStyles: 'Styles',
+  insertComponent: 'Insert component',
+  addToLocal: 'Add to local',
+  noLibraryComponents: 'No components in libraries',
+  noLibraryVariables: 'No variables in libraries',
+  noLibraryStyles: 'No styles in libraries',
+  libraryLoadError: 'Failed to load library'
 })

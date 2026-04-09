@@ -5,6 +5,8 @@ import { useI18n, useSelectionState, useEditorCommands } from '@open-pencil/vue'
 
 import VariablesDialog from './VariablesDialog.vue'
 import StylesDialog from './StylesDialog.vue'
+import LibraryDialog from './LibraryDialog.vue'
+import LibraryPanel from './LibraryPanel.vue'
 import AppearanceSection from './properties/AppearanceSection.vue'
 import EffectsSection from './properties/EffectsSection.vue'
 import ExportSection from './properties/ExportSection.vue'
@@ -17,9 +19,12 @@ import TypographySection from './properties/TypographySection.vue'
 import VariablesSection from './properties/VariablesSection.vue'
 import StylesSection from './properties/StylesSection.vue'
 import StyleBadge from './properties/StyleBadge.vue'
+import LibrarySection from './properties/LibrarySection.vue'
 
 const variablesOpen = ref(false)
 const stylesOpen = ref(false)
+const libraryDialogOpen = ref(false)
+const libraryPanelOpen = ref(false)
 const { selectedNode: node, selectedCount: multiCount } = useSelectionState()
 const { getCommand } = useEditorCommands()
 const goToMainComponent = getCommand('selection.goToMainComponent')
@@ -113,9 +118,12 @@ const { panels } = useI18n()
     <PageSection />
     <VariablesSection @open-dialog="variablesOpen = true" />
     <StylesSection @open-dialog="stylesOpen = true" />
+    <LibrarySection @open-panel="libraryPanelOpen = true" @open-dialog="libraryDialogOpen = true" />
     <ExportSection />
   </div>
 
   <VariablesDialog v-model:open="variablesOpen" />
   <StylesDialog v-model:open="stylesOpen" />
+  <LibraryDialog v-model:open="libraryDialogOpen" />
+  <LibraryPanel v-model:open="libraryPanelOpen" />
 </template>
