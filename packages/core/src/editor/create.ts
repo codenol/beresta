@@ -16,6 +16,7 @@ import { createShapeActions } from './shapes'
 import { createStructureActions } from './structure'
 import { createTextActions } from './text'
 import { createUndoActions } from './undo'
+import { createStyleActions } from './styles'
 import { createVariableActions } from './variables'
 import { createViewportActions } from './viewport'
 
@@ -192,6 +193,7 @@ export function createEditor(options?: EditorOptions) {
   const text = createTextActions(ctx)
   const nodes = createNodeActions(ctx)
   const variables = createVariableActions(ctx)
+  const styles = createStyleActions(ctx)
   const alignment = createAlignmentActions(ctx)
 
   function setCanvasKit(ck: CanvasKit, renderer: SkiaRenderer) {
@@ -257,6 +259,9 @@ export function createEditor(options?: EditorOptions) {
 
     // Variables
     ...variables,
+
+    // Styles
+    ...styles,
 
     // Text editing
     ...text,

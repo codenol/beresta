@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { useI18n, useSelectionState, useEditorCommands } from '@open-pencil/vue'
 
 import VariablesDialog from './VariablesDialog.vue'
+import StylesDialog from './StylesDialog.vue'
 import AppearanceSection from './properties/AppearanceSection.vue'
 import EffectsSection from './properties/EffectsSection.vue'
 import ExportSection from './properties/ExportSection.vue'
@@ -14,8 +15,11 @@ import PositionSection from './properties/PositionSection.vue'
 import StrokeSection from './properties/StrokeSection.vue'
 import TypographySection from './properties/TypographySection.vue'
 import VariablesSection from './properties/VariablesSection.vue'
+import StylesSection from './properties/StylesSection.vue'
+import StyleBadge from './properties/StyleBadge.vue'
 
 const variablesOpen = ref(false)
+const stylesOpen = ref(false)
 const { selectedNode: node, selectedCount: multiCount } = useSelectionState()
 const { getCommand } = useEditorCommands()
 const goToMainComponent = getCommand('selection.goToMainComponent')
@@ -90,9 +94,12 @@ const { panels } = useI18n()
     <PositionSection />
     <LayoutSection />
     <AppearanceSection />
+    <StyleBadge v-if="node.type === 'TEXT'" style-type="TEXT" @open-styles="stylesOpen = true" />
     <TypographySection v-if="node.type === 'TEXT'" />
+    <StyleBadge style-type="FILL" @open-styles="stylesOpen = true" />
     <FillSection />
     <StrokeSection />
+    <StyleBadge style-type="EFFECT" @open-styles="stylesOpen = true" />
     <EffectsSection />
 
     <ExportSection />
@@ -105,8 +112,10 @@ const { panels } = useI18n()
   >
     <PageSection />
     <VariablesSection @open-dialog="variablesOpen = true" />
+    <StylesSection @open-dialog="stylesOpen = true" />
     <ExportSection />
   </div>
 
   <VariablesDialog v-model:open="variablesOpen" />
+  <StylesDialog v-model:open="stylesOpen" />
 </template>

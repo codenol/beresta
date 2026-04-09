@@ -25,6 +25,8 @@ export interface SceneGraphEvents {
   'node:updated': (id: string, changes: Partial<SceneNode>) => void
   'node:deleted': (id: string) => void
   'node:reparented': (nodeId: string, oldParentId: string | null, newParentId: string) => void
+  'style:added': (style: NamedStyle) => void
+  'style:removed': (id: string) => void
   'node:reordered': (nodeId: string, parentId: string, index: number) => void
 }
 
@@ -360,6 +362,10 @@ export interface SceneNode {
 
   boundVariables: Record<string, string>
 
+  fillStyleId: string | null
+  textStyleId: string | null
+  effectStyleId: string | null
+
   pluginData: PluginDataEntry[]
   sharedPluginData: SharedPluginDataEntry[]
   pluginRelaunchData: PluginRelaunchDataEntry[]
@@ -397,6 +403,44 @@ export interface VariableCollection {
   defaultModeId: string
   variableIds: string[]
 }
+
+// --- Named Styles ---
+
+export type StyleType = 'FILL' | 'TEXT' | 'EFFECT'
+
+export interface FillStyle {
+  id: string
+  name: string
+  type: 'FILL'
+  description: string
+  fills: Fill[]
+}
+
+export interface TextStyle {
+  id: string
+  name: string
+  type: 'TEXT'
+  description: string
+  fontFamily: string
+  fontSize: number
+  fontWeight: number
+  italic: boolean
+  lineHeight: number | null
+  letterSpacing: number
+  textCase: TextCase
+  textDecoration: TextDecoration
+  fills: Fill[]
+}
+
+export interface EffectStyle {
+  id: string
+  name: string
+  type: 'EFFECT'
+  description: string
+  effects: Effect[]
+}
+
+export type NamedStyle = FillStyle | TextStyle | EffectStyle
 
 let nextLocalID = 1
 
@@ -502,6 +546,9 @@ function createDefaultNode(type: NodeType, overrides: Partial<SceneNode> = {}): 
     componentId: null,
     overrides: {},
     boundVariables: {},
+    fillStyleId: null,
+    textStyleId: null,
+    effectStyleId: null,
     pluginData: [],
     sharedPluginData: [],
     pluginRelaunchData: [],
@@ -528,6 +575,7 @@ export class SceneGraph {
   images = new Map<string, Uint8Array>()
   variables = new Map<string, Variable>()
   variableCollections = new Map<string, VariableCollection>()
+  styles = new Map<string, NamedStyle>()
   activeMode = new Map<string, string>()
   rootId: string
   figKiwiVersion: number | null = null
@@ -659,6 +707,132 @@ export class SceneGraph {
     }
     this.variableCollections.delete(id)
     this.activeMode.delete(id)
+  }
+
+  // --- Named Styles ---
+
+  addStyle(style: NamedStyle): void {
+    this.styles.set(style.id, style)
+    this.emitter.emit('style:added', style)
+  }
+
+  removeStyle(id: string): void {
+    this.styles.delete(id)
+    for (const node of this.nodes.values()) {
+      if (node.fillStyleId === id) node.fillStyleId = null
+      if (node.textStyleId === id) node.textStyleId = null
+      if (node.effectStyleId === id) node.effectStyleId = null
+    }
+    this.emitter.emit('style:removed', id)
+  }
+
+  getStylesByType(type?: StyleType): NamedStyle[] {
+    const all = Array.from(this.styles.values())
+    if (!type) return all
+    return all.filter((s) => s.type === type)
+  }
+
+  createFillStyle(name: string, fills: Fill[] = []): FillStyle {
+    const style: FillStyle = { id: generateId(), name, type: 'FILL', description: '', fills }
+    this.addStyle(style)
+    return style
+  }
+
+  createTextStyle(name: string, props: Partial<Omit<TextStyle, 'id' | 'name' | 'type' | 'description'>> = {}): TextStyle {
+    const style: TextStyle = {
+      id: generateId(),
+      name,
+      type: 'TEXT',
+      description: '',
+      fontFamily: props.fontFamily ?? 'Inter',
+      fontSize: props.fontSize ?? 14,
+      fontWeight: props.fontWeight ?? 400,
+      italic: props.italic ?? false,
+      lineHeight: props.lineHeight ?? null,
+      letterSpacing: props.letterSpacing ?? 0,
+      textCase: props.textCase ?? 'ORIGINAL',
+      textDecoration: props.textDecoration ?? 'NONE',
+      fills: props.fills ?? [{ type: 'SOLID', color: { r: 0, g: 0, b: 0, a: 1 }, opacity: 1, visible: true }]
+    }
+    this.addStyle(style)
+    return style
+  }
+
+  createEffectStyle(name: string, effects: Effect[] = []): EffectStyle {
+    const style: EffectStyle = { id: generateId(), name, type: 'EFFECT', description: '', effects }
+    this.addStyle(style)
+    return style
+  }
+
+  applyFillStyle(nodeId: string, styleId: string): void {
+    const node = this.nodes.get(nodeId)
+    const style = this.styles.get(styleId)
+    if (!node || style?.type !== 'FILL') return
+    node.fills = style.fills.map((f) => ({ ...f }))
+    node.fillStyleId = styleId
+  }
+
+  applyTextStyle(nodeId: string, styleId: string): void {
+    const node = this.nodes.get(nodeId)
+    const style = this.styles.get(styleId)
+    if (!node || style?.type !== 'TEXT') return
+    node.fontFamily = style.fontFamily
+    node.fontSize = style.fontSize
+    node.fontWeight = style.fontWeight
+    node.italic = style.italic
+    node.lineHeight = style.lineHeight
+    node.letterSpacing = style.letterSpacing
+    node.textCase = style.textCase
+    node.textDecoration = style.textDecoration
+    node.fills = style.fills.map((f) => ({ ...f }))
+    node.textStyleId = styleId
+  }
+
+  applyEffectStyle(nodeId: string, styleId: string): void {
+    const node = this.nodes.get(nodeId)
+    const style = this.styles.get(styleId)
+    if (!node || style?.type !== 'EFFECT') return
+    node.effects = style.effects.map((e) => ({ ...e }))
+    node.effectStyleId = styleId
+  }
+
+  detachFillStyle(nodeId: string): void {
+    const node = this.nodes.get(nodeId)
+    if (node) node.fillStyleId = null
+  }
+
+  detachTextStyle(nodeId: string): void {
+    const node = this.nodes.get(nodeId)
+    if (node) node.textStyleId = null
+  }
+
+  detachEffectStyle(nodeId: string): void {
+    const node = this.nodes.get(nodeId)
+    if (node) node.effectStyleId = null
+  }
+
+  findNodesUsingStyle(styleId: string): SceneNode[] {
+    const result: SceneNode[] = []
+    for (const node of this.nodes.values()) {
+      if (
+        node.fillStyleId === styleId ||
+        node.textStyleId === styleId ||
+        node.effectStyleId === styleId
+      ) {
+        result.push(node)
+      }
+    }
+    return result
+  }
+
+  findNodesUsingVariable(variableId: string): SceneNode[] {
+    const result: SceneNode[] = []
+    for (const node of this.nodes.values()) {
+      if (Object.values(node.boundVariables).includes(variableId)) {
+        result.push(node)
+      }
+    }
+    return result
   }
 
   getActiveModeId(collectionId: string): string {

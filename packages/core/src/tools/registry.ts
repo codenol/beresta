@@ -111,6 +111,16 @@ import {
   exportSvg,
   exportImage
 } from './vector'
+import {
+  listStyles,
+  getStyle,
+  createFillStyle,
+  createTextStyle,
+  createEffectStyle,
+  applyStyle,
+  deleteStyle,
+  findStyles
+} from './styles'
 
 import type { ToolDef } from './schema'
 
@@ -239,7 +249,16 @@ export const EXTENDED_TOOLS: ToolDef[] = [
   diffShow,
   // Codegen
   designToTokens,
-  designToComponentMap
+  designToComponentMap,
+  // Styles
+  listStyles,
+  getStyle,
+  findStyles,
+  createFillStyle,
+  createTextStyle,
+  createEffectStyle,
+  applyStyle,
+  deleteStyle
 ]
 
 /** All tools combined — used by MCP server and CLI. */

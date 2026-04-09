@@ -14,9 +14,11 @@ import {
 import { renderThumbnail } from '../raster'
 import { compressFigDataSync } from './compress'
 
+import { weightToStyle } from '../../../text/fonts'
+
 import type { SkiaRenderer } from '../../../canvas'
 import type { NodeChange } from '../../../kiwi/codec'
-import type { SceneGraph, VariableValue } from '../../../scene-graph'
+import type { SceneGraph, VariableValue, NamedStyle } from '../../../scene-graph'
 import type { GUID } from '../../../types'
 import type { CanvasKit } from 'canvaskit-wasm'
 
@@ -66,6 +68,122 @@ function collectImageEntries(graph: SceneGraph): Array<{ name: string; data: Uin
     entries.push({ name: `images/${hash}`, data })
   }
   return entries
+}
+
+function serializeVariables(
+  graph: SceneGraph,
+  parentGuid: GUID,
+  localIdCounter: { value: number },
+  varIdToGuid: Map<string, GUID>
+): KiwiNodeChange[] {
+  const ncs: KiwiNodeChange[] = []
+  const modeIdToGuid = new Map<string, GUID>()
+  let collIdx = 0
+  for (const [colId, col] of graph.variableCollections) {
+    const colGuid = { sessionID: 0, localID: localIdCounter.value++ }
+    varIdToGuid.set(colId, colGuid)
+    const colNc: KiwiNodeChange = {
+      guid: colGuid,
+      parentIndex: { guid: parentGuid, position: fractionalPosition(collIdx++) },
+      type: 'VARIABLE_SET',
+      name: col.name,
+      phase: 'CREATED',
+      strokeAlign: 'CENTER',
+      strokeJoin: 'BEVEL',
+      variableSetModes: col.modes.map((m, i) => {
+        const mGuid = { sessionID: 0, localID: localIdCounter.value++ }
+        modeIdToGuid.set(m.modeId, mGuid)
+        return { id: mGuid, name: m.name, sortPosition: fractionalPosition(i) }
+      })
+    }
+    ncs.push(colNc)
+
+    let varIdx = 0
+    for (const varId of col.variableIds) {
+      const variable = graph.variables.get(varId)
+      if (!variable) continue
+      const varGuid = { sessionID: 0, localID: localIdCounter.value++ }
+      varIdToGuid.set(varId, varGuid)
+      const typeMap: Record<string, string> = { COLOR: 'COLOR', BOOLEAN: 'BOOLEAN', STRING: 'STRING' }
+      const resolvedType = typeMap[variable.type] ?? 'FLOAT'
+      const entries = Object.entries(variable.valuesByMode).map(([modeId, value]) => ({
+        modeID: modeIdToGuid.get(modeId) ?? stringToGuid(modeId),
+        variableData: variableValueToKiwi(value, variable.type)
+      }))
+      ncs.push({
+        guid: varGuid,
+        parentIndex: { guid: parentGuid, position: fractionalPosition(varIdx++) },
+        type: 'VARIABLE',
+        name: variable.name,
+        phase: 'CREATED',
+        strokeAlign: 'CENTER',
+        strokeJoin: 'BEVEL',
+        variableSetID: { guid: colGuid },
+        variableResolvedType: resolvedType,
+        variableDataValues: { entries },
+        variableScopes: ['ALL_SCOPES']
+      })
+    }
+  }
+  return ncs
+}
+
+function serializeStyles(
+  graph: SceneGraph,
+  parentGuid: GUID,
+  localIdCounter: { value: number }
+): Record<string, unknown>[] {
+  const ncs: Record<string, unknown>[] = []
+  let styleIdx = 0
+  for (const style of graph.styles.values()) {
+    const styleGuid = { sessionID: 0, localID: localIdCounter.value++ }
+    const nc: Record<string, unknown> = {
+      guid: styleGuid,
+      parentIndex: { guid: parentGuid, position: fractionalPosition(styleIdx++) },
+      name: style.name,
+      phase: 'CREATED',
+      strokeAlign: 'CENTER',
+      strokeJoin: 'BEVEL'
+    }
+    applyStyleFields(nc, style)
+    ncs.push(nc)
+  }
+  return ncs
+}
+
+function applyStyleFields(nc: Record<string, unknown>, style: NamedStyle): void {
+  if (style.type === 'FILL') {
+    nc.type = 'PAINT_STYLE'
+    if (style.fills.length > 0) {
+      nc.fillPaints = style.fills.map((f) => ({
+        type: f.type,
+        color: safeColor(f.color),
+        opacity: f.opacity,
+        visible: f.visible
+      }))
+    }
+  } else if (style.type === 'TEXT') {
+    nc.type = 'TEXT_STYLE'
+    nc.fontSize = style.fontSize
+    nc.fontName = { family: style.fontFamily, style: weightToStyle(style.fontWeight, style.italic) }
+    if (style.lineHeight !== null) nc.lineHeight = { value: style.lineHeight, units: 'PIXELS' }
+    nc.letterSpacing = { value: style.letterSpacing, units: 'PIXELS' }
+    nc.textCase = style.textCase
+    nc.textDecoration = style.textDecoration
+  } else {
+    nc.type = 'EFFECT_STYLE'
+    if (style.effects.length > 0) {
+      nc.effects = style.effects.map((e) => ({
+        type: e.type,
+        color: safeColor(e.color),
+        offset: e.offset,
+        radius: e.radius,
+        spread: e.spread,
+        visible: e.visible,
+        blendMode: e.blendMode
+      }))
+    }
+  }
 }
 
 const THUMBNAIL_WIDTH = 400
@@ -140,63 +258,29 @@ export async function exportFigFile(
         )
       )
     }
+    for (const nc of serializeVariables(graph, internalCanvasGuid, localIdCounter, varIdToGuid)) {
+      nodeChanges.push(nc)
+    }
+  }
 
-    const modeIdToGuid = new Map<string, GUID>()
+  if (graph.styles.size > 0) {
+    if (!internalCanvasGuid) {
+      const internalLocalID = localIdCounter.value++
+      internalCanvasGuid = { sessionID: 0, localID: internalLocalID }
+      nodeChanges.push(
+        makeCanvasNodeChange(
+          internalCanvasGuid,
+          docGuid,
+          fractionalPosition(pages.length),
+          'Internal Only Canvas',
+          { internalOnly: true }
+        )
+      )
+    }
 
-    let collIdx = 0
-    for (const [colId, col] of graph.variableCollections) {
-      const colGuid = { sessionID: 0, localID: localIdCounter.value++ }
-      varIdToGuid.set(colId, colGuid)
-      const colNc: KiwiNodeChange = {
-        guid: colGuid,
-        parentIndex: { guid: internalCanvasGuid, position: fractionalPosition(collIdx++) },
-        type: 'VARIABLE_SET',
-        name: col.name,
-        phase: 'CREATED',
-        strokeAlign: 'CENTER',
-        strokeJoin: 'BEVEL',
-        variableSetModes: col.modes.map((m, i) => {
-          const mGuid = { sessionID: 0, localID: localIdCounter.value++ }
-          modeIdToGuid.set(m.modeId, mGuid)
-          return { id: mGuid, name: m.name, sortPosition: fractionalPosition(i) }
-        })
-      }
-      nodeChanges.push(colNc)
-
-      let varIdx = 0
-      for (const varId of col.variableIds) {
-        const variable = graph.variables.get(varId)
-        if (!variable) continue
-
-        const varGuid = { sessionID: 0, localID: localIdCounter.value++ }
-        varIdToGuid.set(varId, varGuid)
-        const typeMap: Record<string, string> = {
-          COLOR: 'COLOR',
-          BOOLEAN: 'BOOLEAN',
-          STRING: 'STRING'
-        }
-        const resolvedType = typeMap[variable.type] ?? 'FLOAT'
-
-        const entries = Object.entries(variable.valuesByMode).map(([modeId, value]) => ({
-          modeID: modeIdToGuid.get(modeId) ?? stringToGuid(modeId),
-          variableData: variableValueToKiwi(value, variable.type)
-        }))
-
-        const varNc: KiwiNodeChange = {
-          guid: varGuid,
-          parentIndex: { guid: internalCanvasGuid, position: fractionalPosition(varIdx++) },
-          type: 'VARIABLE',
-          name: variable.name,
-          phase: 'CREATED',
-          strokeAlign: 'CENTER',
-          strokeJoin: 'BEVEL',
-          variableSetID: { guid: colGuid },
-          variableResolvedType: resolvedType,
-          variableDataValues: { entries },
-          variableScopes: ['ALL_SCOPES']
-        }
-        nodeChanges.push(varNc)
-      }
+    const styleNcs = serializeStyles(graph, internalCanvasGuid, localIdCounter)
+    for (const nc of styleNcs) {
+      nodeChanges.push(nc as unknown as NodeChange)
     }
   }
 

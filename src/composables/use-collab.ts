@@ -58,6 +58,7 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
   let awareness: awarenessProtocol.Awareness | null = null
   let ynodes: Y.Map<Y.Map<unknown>> | null = null
   let yimages: Y.Map<Uint8Array> | null = null
+  let ystyles: Y.Map<string> | null = null
   let room: Room | null = null
   let persistence: IndexeddbPersistence | null = null
   let connectedStore: EditorStore | null = null
@@ -81,6 +82,7 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
     awareness = new awarenessProtocol.Awareness(ydoc)
     ynodes = ydoc.getMap('nodes')
     yimages = ydoc.getMap('images')
+    ystyles = ydoc.getMap('styles')
 
     persistence = new IndexeddbPersistence(`op-room-${roomId}`, ydoc)
 
@@ -111,6 +113,30 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
         }
       }
       store.requestRender()
+    })
+
+    ystyles.observe((event) => {
+      if (suppressYjsEvents) return
+      suppressGraphSync = true
+      try {
+        for (const [key, change] of event.changes.keys) {
+          if (change.action === 'add' || change.action === 'update') {
+            const json = ystyles?.get(key)
+            if (json) {
+              try {
+                const style = JSON.parse(json)
+                store.graph.styles.set(key, style)
+              } catch (err) {
+                console.warn('[collab] Failed to parse style JSON:', err)
+              }
+            }
+          } else {
+            store.graph.styles.delete(key)
+          }
+        }
+      } finally {
+        suppressGraphSync = false
+      }
     })
 
     room = joinTrysteroRoom(
@@ -247,12 +273,36 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
       }
     })
 
+    const unbindStyleAdded = store.graph.emitter.on('style:added', (style) => {
+      if (!suppressGraphSync && ydoc && ystyles) {
+        suppressYjsEvents = true
+        const map = ystyles
+        ydoc.transact(() => {
+          map.set(style.id, JSON.stringify(style))
+        })
+        suppressYjsEvents = false
+      }
+    })
+
+    const unbindStyleRemoved = store.graph.emitter.on('style:removed', (id) => {
+      if (!suppressGraphSync && ydoc && ystyles) {
+        suppressYjsEvents = true
+        const map = ystyles
+        ydoc.transact(() => {
+          map.delete(id)
+        })
+        suppressYjsEvents = false
+      }
+    })
+
     unbindGraphEvents = () => {
       unbindUpdated()
       unbindCreated()
       unbindReparented()
       unbindReordered()
       unbindDeleted()
+      unbindStyleAdded()
+      unbindStyleRemoved()
     }
   }
 
@@ -282,6 +332,7 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
     }
     ynodes = null
     yimages = null
+    ystyles = null
     state.value.connected = false
     state.value.roomId = null
     state.value.peers = []
@@ -355,6 +406,19 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
         }
       })
     }
+    suppressYjsEvents = false
+  }
+
+  function syncAllStylesToYjs() {
+    const store = connectedStore ?? getStore()
+    if (!ydoc || !ystyles) return
+    const localYstyles = ystyles
+    suppressYjsEvents = true
+    ydoc.transact(() => {
+      for (const style of store.graph.styles.values()) {
+        localYstyles.set(style.id, JSON.stringify(style))
+      }
+    })
     suppressYjsEvents = false
   }
 
@@ -495,6 +559,7 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
     const roomId = generateRoomId()
     connect(roomId)
     syncAllNodesToYjs()
+    syncAllStylesToYjs()
     return roomId
   }
 

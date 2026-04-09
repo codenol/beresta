@@ -1,14 +1,20 @@
-import { SceneGraph } from '../scene-graph'
+import { SceneGraph, generateId } from '../scene-graph'
 import {
   guidToString,
   nodeChangeToProps,
   sortChildren,
   setVariableColorResolver,
-  VARIABLE_BINDING_FIELDS_INVERSE
+  VARIABLE_BINDING_FIELDS_INVERSE,
+  convertFills,
+  convertEffects,
+  mapTextDecoration,
+  convertLineHeight,
+  convertLetterSpacing
 } from './convert'
+import { styleToWeight } from '../text/fonts'
 import { populateAndApplyOverrides } from './instance-overrides'
 
-import type { VariableType, VariableValue } from '../scene-graph'
+import type { VariableType, VariableValue, TextCase } from '../scene-graph'
 import type { NodeChange, VariableDataValuesEntry, Color, GUID } from './codec'
 import type { InstanceNodeChange } from './instance-overrides'
 
@@ -123,6 +129,45 @@ function resolveDefaultValue(type: VariableType): VariableValue {
   if (type === 'STRING') return ''
   if (type === 'COLOR') return { r: 0, g: 0, b: 0, a: 1 }
   return 0
+}
+
+function importStyles(changeMap: Map<string, NodeChange>, graph: SceneGraph): void {
+  for (const [, nc] of changeMap) {
+    if (nc.type === 'PAINT_STYLE') {
+      graph.addStyle({
+        id: generateId(),
+        name: nc.name ?? 'Fill Style',
+        type: 'FILL',
+        description: '',
+        fills: convertFills(nc.fillPaints)
+      })
+    } else if (nc.type === 'TEXT_STYLE') {
+      const fontStyle = nc.fontName?.style ?? ''
+      graph.addStyle({
+        id: generateId(),
+        name: nc.name ?? 'Text Style',
+        type: 'TEXT',
+        description: '',
+        fontFamily: nc.fontName?.family ?? 'Inter',
+        fontSize: nc.fontSize ?? 14,
+        fontWeight: styleToWeight(fontStyle),
+        italic: fontStyle.toLowerCase().includes('italic'),
+        lineHeight: convertLineHeight(nc.lineHeight, nc.fontSize),
+        letterSpacing: convertLetterSpacing(nc.letterSpacing, nc.fontSize),
+        textCase: (nc.textCase ?? 'ORIGINAL') as TextCase,
+        textDecoration: mapTextDecoration(nc.textDecoration as string),
+        fills: convertFills(nc.fillPaints)
+      })
+    } else if (nc.type === 'EFFECT_STYLE') {
+      graph.addStyle({
+        id: generateId(),
+        name: nc.name ?? 'Effect Style',
+        type: 'EFFECT',
+        description: '',
+        effects: convertEffects(nc.effects)
+      })
+    }
+  }
 }
 
 function importCollections(changeMap: Map<string, NodeChange>, graph: SceneGraph): void {
@@ -321,6 +366,7 @@ export function importNodeChanges(
 
   importPages(graph, changeMap, parentMap, childrenMap, created, canvasIdToPageId, createSceneNode)
 
+  importStyles(changeMap, graph)
   importCollections(changeMap, graph)
   importVariableEntries(changeMap, parentMap, graph)
   importVariableBindings(changeMap, guidToNodeId, graph)

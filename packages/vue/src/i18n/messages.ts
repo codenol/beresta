@@ -99,6 +99,7 @@ export const panelMessages = i18n('panels', {
   export: 'Export',
   typography: 'Typography',
   variables: 'Variables',
+  styles: 'Styles',
   constraints: 'Constraints',
 
   addFill: 'Add fill',
@@ -114,6 +115,8 @@ export const panelMessages = i18n('panels', {
   noSelection: 'No selection',
   noLocalVariables: 'No local variables',
   openVariables: 'Open variables',
+  noLocalStyles: 'No local styles',
+  openStyles: 'Open styles',
   addPage: 'Add page',
   toggleVisibility: 'Toggle visibility',
   independentCornerRadii: 'Independent corner radii',
@@ -220,5 +223,13 @@ export const dialogMessages = i18n('dialogs', {
   connected: 'Connected',
   search: 'Search…',
   noResults: 'No results',
-  share: 'Share'
+  share: 'Share',
+  namedStyles: 'Named Styles',
+  noStylesYet: 'No styles yet',
+  createStyle: 'Create style',
+  deleteStyle: 'Delete style',
+  fillStyle: 'Fill style',
+  textStyle: 'Text style',
+  effectStyle: 'Effect style',
+  detachStyle: 'Detach style'
 })

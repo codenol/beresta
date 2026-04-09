@@ -10,7 +10,9 @@ import type {
   Variable,
   VariableCollection,
   VariableType,
-  VariableValue
+  VariableValue,
+  NamedStyle,
+  StyleType
 } from '../scene-graph'
 import type { Rect, Vector } from '../types'
 
@@ -280,6 +282,36 @@ export class FigmaAPI implements NodeProxyHost {
 
   unbindVariable(nodeId: string, field: string): void {
     this.graph.unbindVariable(nodeId, field)
+  }
+
+  // --- Styles ---
+
+  getLocalStyles(type?: StyleType): NamedStyle[] {
+    return this.graph.getStylesByType(type)
+  }
+
+  getStyleById(id: string): NamedStyle | null {
+    return this.graph.styles.get(id) ?? null
+  }
+
+  addStyle(style: NamedStyle): void {
+    this.graph.addStyle(style)
+  }
+
+  removeStyle(id: string): void {
+    this.graph.removeStyle(id)
+  }
+
+  applyFillStyle(nodeId: string, styleId: string): void {
+    this.graph.applyFillStyle(nodeId, styleId)
+  }
+
+  applyTextStyle(nodeId: string, styleId: string): void {
+    this.graph.applyTextStyle(nodeId, styleId)
+  }
+
+  applyEffectStyle(nodeId: string, styleId: string): void {
+    this.graph.applyEffectStyle(nodeId, styleId)
   }
 
   // --- Boolean Operations ---

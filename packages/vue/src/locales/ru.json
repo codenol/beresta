@@ -160,7 +160,10 @@
     "strokeAlignOutside": "Снаружи",
     "exportPreview": "Предпросмотр",
     "exportRenderingPreview": "Рендеринг предпросмотра…",
-    "createVariable": "Создать переменную"
+    "createVariable": "Создать переменную",
+    "styles": "Стили",
+    "noLocalStyles": "Нет локальных стилей",
+    "openStyles": "Открыть стили"
   },
   "pages": {
     "newPage": "Новая страница",
@@ -201,6 +204,14 @@
     "connected": "Подключено",
     "search": "Поиск…",
     "noResults": "Ничего не найдено",
-    "share": "Поделиться"
+    "share": "Поделиться",
+    "namedStyles": "Именованные стили",
+    "noStylesYet": "Стилей пока нет",
+    "createStyle": "Создать стиль",
+    "deleteStyle": "Удалить стиль",
+    "fillStyle": "Стиль заливки",
+    "textStyle": "Стиль текста",
+    "effectStyle": "Стиль эффекта",
+    "detachStyle": "Отвязать стиль"
   }
 }

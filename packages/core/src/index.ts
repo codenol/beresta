@@ -71,7 +71,12 @@ export {
   type CharacterStyleOverride,
   type StyleRun,
   type SceneGraphEvents,
-  type DocumentColorSpace
+  type DocumentColorSpace,
+  type StyleType,
+  type FillStyle,
+  type TextStyle,
+  type EffectStyle,
+  type NamedStyle
 } from './scene-graph'
 
 export { FigmaAPI, FigmaNodeProxy, computeImageHash, type FigmaFontName } from './figma-api'
