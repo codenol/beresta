@@ -6,6 +6,7 @@ import { getAcpDebugText, clearAcpDebugLog, hasAcpDebugEntries } from '@/ai/acp-
 import { copyChatLog } from '@/ai/chat-debug'
 import { clearToolLogEntries, didHitStepLimit } from '@/ai/tools'
 import { activeTab } from '@/stores/tabs'
+import { useCodeConnectStore } from '@/stores/code-connect'
 import ACPPermissionDialog from '@/components/chat/ACPPermissionDialog.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import ChatMessage from '@/components/chat/ChatMessage.vue'
@@ -21,6 +22,47 @@ const IS_DEV = import.meta.env.DEV
 
 const { isConfigured, ensureChat, resetChat } = useAIChat()
 const { dialogs } = useI18n()
+const codeConnect = useCodeConnectStore()
+
+// ── Draw from code ────────────────────────────────────────────────────────────
+
+const drawFromCodeOpen = ref(false)
+const pastedCode = ref('')
+
+function buildDrawFromCodePrompt(code: string): string {
+  const reverseEntries = [...codeConnect.reverseMap.value.entries()]
+  const mapJson = JSON.stringify(
+    reverseEntries.map(([name, ref]) => ({ name, libraryId: ref.libraryId, itemId: ref.itemId })),
+    null,
+    2
+  )
+  return [
+    'Нарисуй этот компонент на холсте, используя компоненты библиотеки там, где возможно.',
+    '',
+    '## Код',
+    '```tsx',
+    code.trim(),
+    '```',
+    '',
+    '## Code Connect (codeComponent → libraryRef)',
+    mapJson,
+    '',
+    'Инструкция:',
+    '- Для каждого JSX-тега из map: найди компонент через get_components по libraryRef.itemId, создай экземпляр через create_instance.',
+    '- Для тегов не из map: используй render с Береста JSX.',
+    '- Сохрани иерархию layout (flex, gap, padding, цвета).',
+    '- В конце: viewport_zoom_to_fit.',
+  ].join('\n')
+}
+
+async function handleDrawFromCode() {
+  const code = pastedCode.value.trim()
+  if (!code) return
+  const prompt = buildDrawFromCodePrompt(code)
+  drawFromCodeOpen.value = false
+  pastedCode.value = ''
+  await handleSubmit(prompt)
+}
 
 const chat = ref<Chat<UIMessage> | null>(null)
 
@@ -208,6 +250,45 @@ function handleClearChat() {
         >
           <icon-lucide-trash-2 class="size-3" />
           Clear
+        </button>
+      </div>
+
+      <!-- Draw from code panel -->
+      <div v-if="drawFromCodeOpen" class="shrink-0 border-t border-border bg-panel px-3 py-2.5">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-[11px] font-medium text-surface">{{ dialogs.drawFromCode }}</span>
+          <button
+            class="text-muted hover:text-surface"
+            @click="drawFromCodeOpen = false"
+          >
+            <icon-lucide-x class="size-3.5" />
+          </button>
+        </div>
+        <textarea
+          v-model="pastedCode"
+          rows="6"
+          :placeholder="'Вставьте код компонента (TSX / Vue)…'"
+          class="w-full resize-none rounded border border-border bg-hover/30 px-2.5 py-2 font-mono text-[11px] text-surface placeholder-muted outline-none focus:border-accent"
+        />
+        <button
+          :disabled="!pastedCode.trim() || status === 'streaming' || status === 'submitted'"
+          class="mt-2 w-full rounded bg-surface py-1.5 text-xs font-medium text-panel disabled:opacity-40"
+          @click="handleDrawFromCode"
+        >
+          {{ dialogs.drawFromCode }}
+        </button>
+      </div>
+
+      <!-- Draw-from-code trigger in toolbar -->
+      <div class="flex shrink-0 items-center border-t border-border px-3 py-1">
+        <button
+          :title="dialogs.drawFromCode"
+          class="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px]"
+          :class="drawFromCodeOpen ? 'text-accent' : 'text-muted hover:bg-hover hover:text-surface'"
+          @click="drawFromCodeOpen = !drawFromCodeOpen"
+        >
+          <icon-lucide-terminal class="size-3" />
+          {{ dialogs.drawFromCode }}
         </button>
       </div>
 

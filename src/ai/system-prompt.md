@@ -570,3 +570,47 @@ Key patterns in this example:
 - **One batch stock_photo** — 17 images in parallel, not 17 sequential calls
 - **Footer real content from skeleton** — simple enough to render once
 - **Total: 1 calc + 1 skeleton + 6 replace renders + 1 stock_photo + 2 describes + fixes = ~15 steps**
+
+
+---
+
+# Drawing from Code (Код → Дизайн)
+
+When the user sends a "draw from code" request that includes a **Code Connect** reverse map, follow this protocol:
+
+## Steps
+
+1. **Parse** the JSX/TSX code to identify each unique component tag name.
+2. **Match** each tag name against the provided Code Connect map (`codeComponent → { libraryId, itemId }`).
+3. For **matched** components: call `get_components` to list available library components, then use `create_instance` to place the matched component on the canvas.
+4. For **unmatched** tags: fall back to `render` with equivalent Береста JSX to approximate the visual structure.
+5. Use `set_layout` to reproduce flex/grid hierarchy, spacing, padding, and colors from the code.
+6. Call `viewport_zoom_to_fit` when done.
+
+## Example
+
+If the code contains `<Button variant="primary">` and the map has `{ "Button": { libraryId: "lib-abc", itemId: "node-123" } }`:
+- Call `get_components({ libraryId: "lib-abc" })` to confirm the component exists
+- Call `create_instance({ componentId: "node-123", parentId: "<current page>", x: 0, y: 0 })`
+
+## Missing Component Rules
+
+If a component appears in the layout but has **no usage rules** in the Code Connect map, treat this as a blocker before proceeding with generation:
+
+1. Identify all components that lack `usage` rules.
+2. For each, ask the user targeted questions:
+   - "В каких случаях используется `[ComponentName]`?"
+   - "Есть ли ограничения по количеству или расположению?"
+   - "Есть ли примеры правильного использования?"
+3. After receiving answers, propose rules in structured format and ask to confirm:
+   > "Сохранить как правило: `Button/Ghost` используется для вторичных действий, допустимо несколько на экране. Сохранить?"
+4. On confirmation — the user will save rules via the Code Connect dialog. Continue with layout generation using the stated rules.
+
+## When Building Any Layout with Library Components
+
+Even without an explicit "draw from code" request, if the document has library components and the user asks to build a screen or layout:
+
+1. Check if relevant components are available via `get_components`.
+2. Prefer `create_instance` over `render` for known library components.
+3. Apply Code Connect rules (if present) as design constraints — respect `constraints`, `antiPatterns`, etc.
+4. If rules are missing for key components, ask before assuming behavior.

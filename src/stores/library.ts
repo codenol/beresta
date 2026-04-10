@@ -15,6 +15,11 @@ import { exportFigFile, parseFigFile, readFigFile, readPenFile, libraryRegistry,
 
 import type { LibraryManifest, SceneGraph } from '@open-pencil/core'
 
+import { useCodeConnectStore } from './code-connect'
+
+// Code Connect store — seeded/pruned alongside library registration
+const _codeConnect = useCodeConnectStore()
+
 const MANIFEST_KEY = 'beresta:libraries'
 const DATA_KEY_PREFIX = 'beresta:lib:'
 
@@ -121,6 +126,7 @@ async function addLibraryFromFile(file: File): Promise<void> {
     }
 
     libraryRegistry.register(manifest, graph)
+    _codeConnect.seedFromLibrary(manifest.id)
 
     const updated = [..._manifests.value, manifest]
     _manifests.value = updated
@@ -138,6 +144,7 @@ async function addLibraryFromFile(file: File): Promise<void> {
  */
 function removeLibrary(id: string): void {
   libraryRegistry.unregister(id)
+  _codeConnect.pruneLibrary(id)
   removeLibraryData(id)
   const updated = _manifests.value.filter((m) => m.id !== id)
   _manifests.value = updated
@@ -238,6 +245,7 @@ async function addLibraryFromBuffer(name: string, buf: ArrayBuffer): Promise<str
       return ''
     }
     libraryRegistry.register(manifest, graph)
+    _codeConnect.seedFromLibrary(manifest.id)
     const updated = [..._manifests.value, manifest]
     _manifests.value = updated
     saveManifests(updated)
@@ -264,7 +272,9 @@ async function replaceLibrary(id: string, buf: ArrayBuffer): Promise<void> {
     const graph = await parseFigFile(buf)
     const newManifest = LibraryRegistry.buildManifest(id, existing.name, graph)
     libraryRegistry.unregister(id)
+    _codeConnect.pruneLibrary(id)
     libraryRegistry.register(newManifest, graph)
+    _codeConnect.seedFromLibrary(id)
     saveLibraryData(id, buf)
     _manifests.value = _manifests.value.map((m) => (m.id === id ? newManifest : m))
     saveManifests(_manifests.value)
@@ -313,6 +323,7 @@ async function init(): Promise<void> {
       const file = new File([blob], manifest.name + '.fig')
       const { graph } = await _parseFile(file)
       libraryRegistry.register(manifest, graph)
+      _codeConnect.seedFromLibrary(manifest.id)
       loaded.push(manifest)
     } catch (err) {
       console.error(`[library] Failed to load library "${manifest.name}":`, err)

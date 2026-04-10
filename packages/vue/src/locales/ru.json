@@ -298,6 +298,35 @@
     "libPublish": "Опубликовать на GitHub",
     "libPublishing": "Публикую…",
     "libPublishCopyUrl": "Скопировать ссылку",
-    "libPublishShareHint": "Поделитесь ссылкой с командой — они смогут подписаться на обновления."
+    "libPublishShareHint": "Поделитесь ссылкой с командой — они смогут подписаться на обновления.",
+
+    "codeConnect": "Code Connect",
+    "openCodeConnect": "Code Connect",
+    "codeConnectEmpty": "Добавьте дизайн-библиотеку, чтобы сопоставить компоненты с кодом.",
+    "codeConnectDesignName": "Компонент дизайна",
+    "codeConnectCodeComponent": "Код-компонент",
+    "codeConnectImportPath": "Import path",
+    "codeConnectProps": "Props",
+    "codeConnectRules": "Правила использования",
+    "copyWithImports": "Копировать с импортами",
+    "unmappedInstances": "{count} несопоставленных компонентов",
+
+    "frameworkReact": "React TSX",
+    "frameworkVue": "Vue SFC",
+    "frameworkHtml": "HTML",
+
+    "drawFromCode": "Нарисовать из кода",
+
+    "noRules": "Правила не заданы",
+    "ruleUsage": "Назначение",
+    "ruleUsagePlaceholder": "Когда и зачем использовать этот компонент…",
+    "ruleConstraints": "Ограничения (по одному в строке)",
+    "ruleConstraintsPlaceholder": "Максимум 1 на экран\nНе рядом с другими primary-кнопками…",
+    "ruleExamples": "Примеры (по одному в строке)",
+    "ruleExamplesPlaceholder": "Submit в форме регистрации\nCTA в шапке…",
+    "ruleAntiPatterns": "Антипаттерны (по одному в строке)",
+    "ruleAntiPatternsPlaceholder": "Не использовать для навигации…",
+    "saveRules": "Сохранить правила",
+    "rulesUpdatedBy": "кем"
   }
 }

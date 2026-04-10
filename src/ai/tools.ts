@@ -4,6 +4,7 @@ import * as v from 'valibot'
 
 import { makeFigmaFromStore } from '@/automation/figma-factory'
 import { getActiveEditorStore } from '@/stores/editor'
+import { useCodeConnectStore } from '@/stores/code-connect'
 import {
   CORE_TOOLS,
   collectFontKeys,
@@ -86,11 +87,59 @@ export function clearToolLogEntries(store?: EditorStore): void {
   getRunState(store).clear()
 }
 
+// ---------------------------------------------------------------------------
+// save_component_rules — AI writes usage rules for a library component
+// ---------------------------------------------------------------------------
+
+function makeSaveComponentRulesTool() {
+  const codeConnect = useCodeConnectStore()
+
+  const schema = v.object({
+    component_node_id: v.string('The COMPONENT node ID from the library graph'),
+    usage: v.string('Short description of when and why to use this component'),
+    constraints: v.optional(v.array(v.string())),
+    examples: v.optional(v.array(v.string())),
+    anti_patterns: v.optional(v.array(v.string())),
+  })
+
+  // eslint-disable-next-line typescript-eslint/no-explicit-any -- inputSchema + execute overloads not narrowable with valibot; same pattern as toolsToAI
+  return (tool as (...a: any[]) => unknown)({
+    description:
+      'Save usage rules for a design library component. Call this after the user confirms the rules you proposed for a component.',
+    inputSchema: valibotSchema(schema as any),
+    execute: async (args: Record<string, unknown>) => {
+      const component_node_id = args.component_node_id as string
+      const usage = args.usage as string
+      const constraints = args.constraints as string[] | undefined
+      const examples = args.examples as string[] | undefined
+      const anti_patterns = args.anti_patterns as string[] | undefined
+
+      const existing = codeConnect.getEntry(component_node_id)
+      if (!existing) {
+        return { ok: false, error: `No Code Connect entry found for node ID: ${component_node_id}` }
+      }
+      const rule = {
+        usage,
+        constraints: constraints ?? [],
+        examples: examples ?? [],
+        antiPatterns: anti_patterns ?? [],
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'ai' as const,
+      }
+      codeConnect.upsertEntry({ ...existing, rules: rule })
+      return { ok: true, message: `Rules saved for component "${existing.designName}"` }
+    },
+  })
+}
+
 export function createAITools(store: EditorStore) {
   let beforeSnapshot: Map<string, SceneNode> | null = null
   const runState = getRunState(store)
 
-  return toolsToAI(
+  const saveComponentRules = makeSaveComponentRulesTool()
+
+  return {
+    ...toolsToAI(
     CORE_TOOLS,
     {
       getFigma: () => makeFigmaFromStore(store),
@@ -146,7 +195,10 @@ export function createAITools(store: EditorStore) {
       })
     },
     { v, valibotSchema, tool }
-  )
+  ),
+    // eslint-disable-next-line typescript-eslint/no-explicit-any -- unknown cast required to satisfy ToolSet's CoreTool constraint
+    save_component_rules: saveComponentRules as any,
+  }
 }
 
 export type AITools = ReturnType<typeof createAITools>

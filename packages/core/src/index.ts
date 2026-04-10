@@ -342,7 +342,11 @@ export {
   type RenderResult,
   sceneNodeToJSX,
   selectionToJSX,
-  type JSXFormat
+  type JSXFormat,
+  selectionToCode,
+  type GeneratedCode,
+  type CodeFramework,
+  type CodeConnectMapEntry
 } from './design-jsx'
 export {
   parseFigmaClipboard,

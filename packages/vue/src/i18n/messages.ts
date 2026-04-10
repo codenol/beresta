@@ -320,5 +320,38 @@ export const dialogMessages = i18n('dialogs', {
   libPublish: 'Publish to GitHub',
   libPublishing: 'Publishing…',
   libPublishCopyUrl: 'Copy link',
-  libPublishShareHint: 'Share this link with teammates so they can subscribe.'
+  libPublishShareHint: 'Share this link with teammates so they can subscribe.',
+
+  // Code Connect
+  codeConnect: 'Code Connect',
+  openCodeConnect: 'Code Connect',
+  codeConnectEmpty: 'Add a design library to map components to code.',
+  codeConnectDesignName: 'Design component',
+  codeConnectCodeComponent: 'Code component',
+  codeConnectImportPath: 'Import path',
+  codeConnectProps: 'Props',
+  codeConnectRules: 'Usage rules',
+  copyWithImports: 'Copy with imports',
+  unmappedInstances: params('{count} unmapped components'),
+
+  // Framework selector (Phase 6B)
+  frameworkReact: 'React TSX',
+  frameworkVue: 'Vue SFC',
+  frameworkHtml: 'HTML',
+
+  // Draw from code (Phase 6C)
+  drawFromCode: 'Draw from code',
+
+  // Component rules (Phase 6D)
+  noRules: 'No usage rules',
+  ruleUsage: 'Purpose',
+  ruleUsagePlaceholder: 'When and why to use this component…',
+  ruleConstraints: 'Constraints (one per line)',
+  ruleConstraintsPlaceholder: 'Max 1 per screen\nNot next to other primary buttons…',
+  ruleExamples: 'Examples (one per line)',
+  ruleExamplesPlaceholder: 'Submit in registration form\nCTA in header…',
+  ruleAntiPatterns: 'Anti-patterns (one per line)',
+  ruleAntiPatternsPlaceholder: 'Do not use for navigation…',
+  saveRules: 'Save rules',
+  rulesUpdatedBy: 'by'
 })

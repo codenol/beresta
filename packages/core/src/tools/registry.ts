@@ -136,6 +136,7 @@ export const CORE_TOOLS: ToolDef[] = [
   getJsx,
   // Create
   render,
+  createInstance,
   // Modify
   updateNode,
   setLayout,
@@ -181,7 +182,6 @@ export const EXTENDED_TOOLS: ToolDef[] = [
   insertIcon,
   fetchIconsTool,
   createComponent,
-  createInstance,
   createPage,
   createVector,
   createSlice,

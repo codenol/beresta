@@ -23,6 +23,8 @@ import StylesSection from './properties/StylesSection.vue'
 import StyleBadge from './properties/StyleBadge.vue'
 import LibrarySection from './properties/LibrarySection.vue'
 import LintSection from './properties/LintSection.vue'
+import ComponentRulesSection from './properties/ComponentRulesSection.vue'
+import CodeConnectDialog from './CodeConnectDialog.vue'
 
 const { activeTab } = useAIChat()
 const variablesOpen = ref(false)
@@ -30,6 +32,7 @@ const stylesOpen = ref(false)
 const libraryDialogOpen = ref(false)
 const libraryPanelOpen = ref(false)
 const tokenExportOpen = ref(false)
+const codeConnectOpen = ref(false)
 const { selectedNode: node, selectedCount: multiCount } = useSelectionState()
 const { getCommand } = useEditorCommands()
 const goToMainComponent = getCommand('selection.goToMainComponent')
@@ -101,6 +104,13 @@ const { panels } = useI18n()
       </button>
     </div>
 
+    <!-- Component rules (for library instances) -->
+    <ComponentRulesSection
+      v-if="node.type === 'INSTANCE' && node.componentId"
+      :component-node-id="node.componentId"
+      @open-code-connect="codeConnectOpen = true"
+    />
+
     <PositionSection />
     <LayoutSection />
     <AppearanceSection />
@@ -133,4 +143,5 @@ const { panels } = useI18n()
   <LibraryDialog v-model:open="libraryDialogOpen" />
   <LibraryPanel v-model:open="libraryPanelOpen" />
   <TokenExportDialog v-model:open="tokenExportOpen" />
+  <CodeConnectDialog v-model:open="codeConnectOpen" />
 </template>
