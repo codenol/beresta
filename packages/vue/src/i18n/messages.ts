@@ -186,6 +186,16 @@ export const panelMessages = i18n('panels', {
   sizingFillFr: 'Fill (fr)',
   sizingFixedPx: 'Fixed (px)',
 
+  exportTokens: 'Export tokens',
+  exportTokensOpen: 'Open token export',
+  tokensCopied: 'Copied!',
+  tokensDownload: 'Download',
+  tokensFormatCSS: 'CSS Variables',
+  tokensFormatTailwind: 'Tailwind',
+  tokensFormatJSON: 'Tokens JSON',
+  tokensEmpty: 'No variables or styles to export',
+  tokensDescription: 'Export design tokens as CSS, Tailwind, or W3C Design Tokens JSON',
+
   lint: 'Lint',
   lintRun: 'Run',
   lintRunning: 'Running…',

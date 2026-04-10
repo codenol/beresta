@@ -80,6 +80,13 @@ export {
 } from './scene-graph'
 
 export { libraryRegistry, LibraryRegistry, type LibraryManifest } from './library'
+export {
+  exportTokens,
+  exportCSSVariables,
+  exportTailwindTheme,
+  exportTokensJSON,
+  type TokenExportFormat,
+} from './io/formats/tokens'
 
 export { FigmaAPI, FigmaNodeProxy, computeImageHash, type FigmaFontName } from './figma-api'
 export {

@@ -8,6 +8,7 @@ import VariablesDialog from './VariablesDialog.vue'
 import StylesDialog from './StylesDialog.vue'
 import LibraryDialog from './LibraryDialog.vue'
 import LibraryPanel from './LibraryPanel.vue'
+import TokenExportDialog from './TokenExportDialog.vue'
 import AppearanceSection from './properties/AppearanceSection.vue'
 import EffectsSection from './properties/EffectsSection.vue'
 import ExportSection from './properties/ExportSection.vue'
@@ -28,6 +29,7 @@ const variablesOpen = ref(false)
 const stylesOpen = ref(false)
 const libraryDialogOpen = ref(false)
 const libraryPanelOpen = ref(false)
+const tokenExportOpen = ref(false)
 const { selectedNode: node, selectedCount: multiCount } = useSelectionState()
 const { getCommand } = useEditorCommands()
 const goToMainComponent = getCommand('selection.goToMainComponent')
@@ -119,7 +121,7 @@ const { panels } = useI18n()
     class="scrollbar-thin flex-1 overflow-x-hidden overflow-y-auto pb-4"
   >
     <PageSection />
-    <VariablesSection @open-dialog="variablesOpen = true" />
+    <VariablesSection @open-dialog="variablesOpen = true" @open-token-export="tokenExportOpen = true" />
     <StylesSection @open-dialog="stylesOpen = true" />
     <LibrarySection @open-panel="libraryPanelOpen = true" @open-dialog="libraryDialogOpen = true" />
     <LintSection @open-panel="activeTab = 'lint'" />
@@ -130,4 +132,5 @@ const { panels } = useI18n()
   <StylesDialog v-model:open="stylesOpen" />
   <LibraryDialog v-model:open="libraryDialogOpen" />
   <LibraryPanel v-model:open="libraryPanelOpen" />
+  <TokenExportDialog v-model:open="tokenExportOpen" />
 </template>

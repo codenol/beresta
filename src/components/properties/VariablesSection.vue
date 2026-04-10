@@ -7,7 +7,7 @@ import { useI18n, useSceneComputed } from '@open-pencil/vue'
 
 import { useEditorStore } from '@/stores/editor'
 
-const emit = defineEmits<{ openDialog: [] }>()
+const emit = defineEmits<{ openDialog: []; openTokenExport: [] }>()
 
 const editor = useEditorStore()
 const collectionCount = useSceneComputed(() => {
@@ -27,15 +27,25 @@ const { panels } = useI18n()
   <div data-test-id="variables-section" :class="sectionCls.wrapper">
     <div class="flex items-center justify-between">
       <label class="text-[11px] font-medium text-surface">{{ panels.variables }}</label>
-      <Tip :label="panels.openVariables">
-        <button
-          data-test-id="variables-section-open"
-          class="flex size-5 cursor-pointer items-center justify-center rounded border-none bg-transparent text-muted hover:bg-hover hover:text-surface"
-          @click="emit('openDialog')"
-        >
-          <icon-lucide-settings-2 class="size-3.5" />
-        </button>
-      </Tip>
+      <div class="flex items-center gap-0.5">
+        <Tip :label="panels.exportTokensOpen">
+          <button
+            class="flex size-5 cursor-pointer items-center justify-center rounded border-none bg-transparent text-muted hover:bg-hover hover:text-surface"
+            @click="emit('openTokenExport')"
+          >
+            <icon-lucide-arrow-up-from-line class="size-3.5" />
+          </button>
+        </Tip>
+        <Tip :label="panels.openVariables">
+          <button
+            data-test-id="variables-section-open"
+            class="flex size-5 cursor-pointer items-center justify-center rounded border-none bg-transparent text-muted hover:bg-hover hover:text-surface"
+            @click="emit('openDialog')"
+          >
+            <icon-lucide-settings-2 class="size-3.5" />
+          </button>
+        </Tip>
+      </div>
     </div>
     <div v-if="hasVariables" class="mt-1 text-[11px] text-muted">
       {{ variableCount }} / {{ collectionCount }}
