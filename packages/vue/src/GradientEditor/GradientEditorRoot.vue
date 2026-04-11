@@ -1,4 +1,5 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false })
 import { computed, ref } from 'vue'
 import { colorToCSS, parseColor } from '@beresta/core'
 

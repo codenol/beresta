@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { usePropertyList } from './context'
 
+defineOptions({ inheritAttrs: false })
+
 const props = defineProps<{
   index: number
 }>()

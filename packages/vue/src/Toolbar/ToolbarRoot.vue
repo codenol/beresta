@@ -1,4 +1,5 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false })
 import { ref, computed } from 'vue'
 import { EDITOR_TOOLS } from '@beresta/core/editor'
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false })
 import { useLayout } from '@beresta/vue/controls/useLayout'
 
 const ctx = useLayout()

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false })
 import { ref } from 'vue'
 
 import { useEditor } from '@beresta/vue/context/editorContext'

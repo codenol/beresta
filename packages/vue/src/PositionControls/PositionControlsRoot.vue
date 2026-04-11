@@ -1,4 +1,5 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false })
 import { computed } from 'vue'
 
 import { MIXED, useNodeProps } from '@beresta/vue/controls/useNodeProps'

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false })
 import { useTypography } from '@beresta/vue/controls/useTypography'
 
 import type { AcceptableValue } from 'reka-ui'

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false })
 import { useAppearance } from '@beresta/vue/controls/useAppearance'
 
 const ctx = useAppearance()
