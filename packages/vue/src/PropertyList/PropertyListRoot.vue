@@ -6,6 +6,8 @@ import { useNodeProps } from '@beresta/vue/controls/useNodeProps'
 import { useSceneComputed } from '@beresta/vue/internal/useSceneComputed'
 import { providePropertyList } from './context'
 
+defineOptions({ inheritAttrs: false })
+
 import type { Fill, Stroke, Effect, SceneNode } from '@beresta/core'
 
 type ArrayPropKey = 'fills' | 'strokes' | 'effects'

@@ -4,6 +4,8 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useEditor } from '@beresta/vue/context/editorContext'
 import { provideLayerTree } from './context'
 
+defineOptions({ inheritAttrs: false })
+
 import type { LayerNode } from './context'
 
 const props = defineProps<{

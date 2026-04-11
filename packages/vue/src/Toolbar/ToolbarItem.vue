@@ -3,6 +3,8 @@ import { computed } from 'vue'
 
 import { useToolbar } from './context'
 
+defineOptions({ inheritAttrs: false })
+
 import type { Tool } from '@beresta/core/editor'
 
 const props = defineProps<{

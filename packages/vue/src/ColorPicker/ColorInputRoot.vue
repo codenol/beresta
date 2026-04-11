@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { colorToHexRaw, parseColor } from '@beresta/core'
 
+defineOptions({ inheritAttrs: false })
+
 import type { Color } from '@beresta/core'
 import type { OkHCLControls } from './types'
 
