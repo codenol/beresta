@@ -22,14 +22,12 @@ import {
 import { libraryRegistry, BUILT_IN_ARCHETYPES, BERESTA_STANDARD_LIBRARY_ID } from '@beresta/core'
 import type { LibraryManifest } from '@beresta/core'
 
-import { useEditorStore } from '@/stores/editor'
 import { useLibraryStore } from '@/stores/library'
 import { useDialogUI } from '@/components/ui/dialog'
 
 const open = defineModel<boolean>('open', { default: false })
 const cls = useDialogUI({ content: 'flex h-[70vh] w-[640px] max-w-[92vw] flex-col' })
 
-const editor = useEditorStore()
 const libraryStore = useLibraryStore()
 
 // ---------------------------------------------------------------------------
@@ -45,10 +43,6 @@ const selectedLibrary = computed(() =>
     ? allManifests.value.find((m) => m.id === selectedLibraryId.value) ?? null
     : null
 )
-
-function selectLibrary(id: string) {
-  selectedLibraryId.value = selectedLibraryId.value === id ? null : id
-}
 
 function isBuiltIn(id: string) {
   return id === BERESTA_STANDARD_LIBRARY_ID
@@ -67,22 +61,38 @@ interface MappingRow {
   componentId: string
   componentName: string
   autoArchetypeId: string | null
-  overrideArchetypeId: string | null
+  overrideArchetypeId: string
+}
+
+// Reactive local overrides map: componentId → archetypeId (empty = unassigned)
+// Stored separately so SceneGraph's non-reactive Map doesn't block re-renders.
+const localOverrides = ref(new Map<string, string>())
+
+// Reset overrides when library selection changes
+function selectLibrary(id: string) {
+  if (selectedLibraryId.value !== id) {
+    localOverrides.value = new Map()
+  }
+  selectedLibraryId.value = selectedLibraryId.value === id ? null : id
 }
 
 const mappingRows = computed<MappingRow[]>(() => {
+  // Touch localOverrides to make computed reactive to override changes
+  const overrides = localOverrides.value
   if (!selectedLibraryId.value) return []
-  const libGraph = libraryRegistry.getGraph(selectedLibraryId.value)
-  if (!libGraph) return []
 
   return libraryRegistry
     .getComponents(selectedLibraryId.value)
-    .map(({ node }) => ({
-      componentId: node.id,
-      componentName: node.name,
-      autoArchetypeId: node.archetypeId ?? null,
-      overrideArchetypeId: node.archetypeId ?? null,
-    }))
+    .map(({ node }) => {
+      const autoId = node.archetypeId ?? null
+      const overrideId = overrides.get(node.id)
+      return {
+        componentId: node.id,
+        componentName: node.name,
+        autoArchetypeId: autoId,
+        overrideArchetypeId: overrideId !== undefined ? overrideId : (autoId ?? ''),
+      }
+    })
 })
 
 const archetypeOptions = computed(() => [
@@ -91,13 +101,15 @@ const archetypeOptions = computed(() => [
 ])
 
 function setOverride(componentId: string, archetypeId: string) {
-  // Update archetypeId directly on the node in the library graph
+  // Store in local reactive map first (drives computed re-run)
+  const next = new Map(localOverrides.value)
+  next.set(componentId, archetypeId)
+  localOverrides.value = next
+
+  // Also persist into the library graph so it survives panel re-opens
   const libGraph = libraryRegistry.getGraph(selectedLibraryId.value!)
   if (!libGraph) return
-  const node = libGraph.getNode(componentId)
-  if (node) {
-    libGraph.updateNode(componentId, { archetypeId: archetypeId || undefined })
-  }
+  libGraph.updateNode(componentId, { archetypeId: archetypeId || undefined })
 }
 </script>
 
