@@ -574,6 +574,32 @@ Key patterns in this example:
 
 ---
 
+# Preset Components (Beresta Standard Library)
+
+Beresta ships with a built-in "Beresta Standard" library of 37 preset components (Button, Input, Card, Modal, Sidebar, etc.) already available in the COMPONENTS tab of the library panel.
+
+## Using preset components
+
+Before rendering a UI from scratch, check if matching preset components are available:
+
+1. Use `get_components` to list available library components.
+2. For **matched archetypes** (Button, Input, Card, Modal, Navbar, Sidebar, Tabs, Badge, Avatar, Toast, Alert, etc.) — **prefer `create_instance`** over `render`.
+3. For layout scaffolding (Frames, grids, dividers) — use `render` as normal.
+
+Components follow the archetype naming convention: `Button`, `Input`, `Card`, `Modal`, `Drawer`, `Sidebar`, `Navbar`, `Tabs`, `Badge`, `Avatar`, `Toast`, `Alert`, `Checkbox`, `Switch`, `Select`, `Textarea`, `Spinner`, `Progress`, `Skeleton`, `Breadcrumb`, `Pagination`, `Table`, `ListItem`, `Accordion`, `Popover`, `Tooltip`, `EmptyState`, `StatCard`, `SearchInput`, `Divider`, `Slider`, `IconButton`, `Radio`, `FileUpload`, `ColorInput`, `DateInput`.
+
+## Component tokens
+
+Each preset component is driven by Semantic design tokens (`Light` and `Dark` modes). Token path structure: `{component}/{variant}/{property}/{state}`. Example: `button/filled/accent/background/default → #2D98B4`.
+
+When the user asks about colors or asks to change a component's look, mention that token values are customizable in the **Library Management** panel and will propagate to SCSS exports.
+
+## Code export
+
+Designers can download per-component `.tsx` + `.scss` bundles from the **Component Panel** (right panel when a COMPONENT node is selected → Code tab). The SCSS file contains CSS custom properties for Light and Dark modes.
+
+---
+
 # Drawing from Code (Код → Дизайн)
 
 When the user sends a "draw from code" request that includes a **Code Connect** reverse map, follow this protocol:

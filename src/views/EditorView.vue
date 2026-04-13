@@ -26,6 +26,7 @@ import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SafariBanner from '@/components/SafariBanner.vue'
 import TabBar from '@/components/TabBar.vue'
 import Toolbar from '@/components/Toolbar.vue'
+import LibraryMissingBanner from '@/components/LibraryMissingBanner.vue'
 
 const route = useRoute()
 const params = useUrlSearchParams('history')
@@ -80,6 +81,7 @@ onUnmounted(() => {
   <div data-test-id="editor-root" class="flex h-screen w-screen flex-col">
     <SafariBanner />
     <TabBar />
+    <LibraryMissingBanner />
 
     <!-- Desktop layout -->
     <SplitterGroup

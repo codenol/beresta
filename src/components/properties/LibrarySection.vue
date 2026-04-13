@@ -6,7 +6,7 @@ import { useSectionUI } from '@/components/ui/section'
 import { useI18n } from '@beresta/vue'
 import { useLibraryStore } from '@/stores/library'
 
-const emit = defineEmits<{ openPanel: []; openDialog: [] }>()
+const emit = defineEmits<{ openPanel: []; openDialog: []; openManagement: [] }>()
 
 const libraryStore = useLibraryStore()
 const libraryCount = computed(() => libraryStore.libraryCount.value)
@@ -33,6 +33,14 @@ const { panels } = useI18n()
             @click="emit('openDialog')"
           >
             <icon-lucide-settings-2 class="size-3.5" />
+          </button>
+        </Tip>
+        <Tip label="Component mapping">
+          <button
+            class="flex size-5 cursor-pointer items-center justify-center rounded border-none bg-transparent text-muted hover:bg-hover hover:text-surface"
+            @click="emit('openManagement')"
+          >
+            <icon-lucide-git-merge class="size-3.5" />
           </button>
         </Tip>
       </div>

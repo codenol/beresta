@@ -11,7 +11,11 @@
  */
 
 import { shallowRef, computed, type ComputedRef } from 'vue'
-import { exportFigFile, parseFigFile, readFigFile, readPenFile, libraryRegistry, LibraryRegistry } from '@beresta/core'
+import {
+  exportFigFile, parseFigFile, readFigFile, readPenFile,
+  libraryRegistry, LibraryRegistry,
+  buildStandardLibrary, BERESTA_STANDARD_LIBRARY_ID,
+} from '@beresta/core'
 
 import type { LibraryManifest, SceneGraph } from '@beresta/core'
 
@@ -86,6 +90,7 @@ function removeLibraryData(id: string): void {
 // ---------------------------------------------------------------------------
 
 const _manifests = shallowRef<LibraryManifest[]>([])
+const _builtInReady = shallowRef(false)
 const _loading = shallowRef(false)
 const _error = shallowRef<string | null>(null)
 
@@ -306,6 +311,20 @@ async function exportLibraryBuffer(id: string): Promise<Uint8Array | null> {
  * Call this once on app startup.
  */
 async function init(): Promise<void> {
+  // Always ensure the built-in "Beresta Standard" library is registered first
+  if (!libraryRegistry.has(BERESTA_STANDARD_LIBRARY_ID)) {
+    try {
+      const { manifest, graph } = await buildStandardLibrary()
+      console.log('[library] Built Beresta Standard:', manifest.componentCount, 'components,', graph.variableCollections.size, 'collections,', graph.variables.size, 'variables')
+      libraryRegistry.register(manifest, graph)
+      console.log('[library] Registered OK, registry has:', libraryRegistry.getAll().length, 'libraries')
+    } catch (err) {
+      console.error('[library] Failed to build Beresta Standard library:', err)
+    }
+  }
+  _builtInReady.value = libraryRegistry.has(BERESTA_STANDARD_LIBRARY_ID)
+  console.log('[library] _builtInReady:', _builtInReady.value, 'libraryCount:', libraryCount.value)
+
   const manifests = loadManifests()
   if (manifests.length === 0) return
 
@@ -363,7 +382,7 @@ export interface LibraryStore {
   init: () => Promise<void>
 }
 
-const libraryCount = computed(() => _manifests.value.length)
+const libraryCount = computed(() => _manifests.value.length + (_builtInReady.value ? 1 : 0))
 
 const store: LibraryStore = {
   manifests: _manifests,

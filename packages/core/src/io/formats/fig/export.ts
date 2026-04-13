@@ -206,7 +206,19 @@ export async function exportFigFile(
   const docGuid = { sessionID: 0, localID: 0 }
   const localIdCounter = { value: 2 }
 
-  const nodeChanges: KiwiNodeChange[] = [makeDocumentNodeChange(docGuid, graph.documentColorSpace)]
+  const docNc = makeDocumentNodeChange(docGuid, graph.documentColorSpace)
+  // Serialize document-level metadata (archetypeTokenBindings, componentRules, libraryRefs)
+  const docMeta: Record<string, unknown> = {}
+  if (graph.archetypeTokenBindings.length > 0) docMeta.archetypeTokenBindings = graph.archetypeTokenBindings
+  if (graph.archetypeCodeBindings.length > 0) docMeta.archetypeCodeBindings = graph.archetypeCodeBindings
+  if (graph.archetypeDesignBindings.length > 0) docMeta.archetypeDesignBindings = graph.archetypeDesignBindings
+  if (graph.componentRules.length > 0) docMeta.componentRules = graph.componentRules
+  if (graph.libraryRefs.length > 0) docMeta.libraryRefs = graph.libraryRefs
+  if (Object.keys(docMeta).length > 0) {
+    docNc.pluginData = [{ pluginID: 'open-pencil', key: 'open-pencil/berestaMeta', value: JSON.stringify(docMeta) }]
+  }
+
+  const nodeChanges: KiwiNodeChange[] = [docNc]
 
   const blobs: Uint8Array[] = []
   const pages = graph.getPages(true)

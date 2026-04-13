@@ -43,13 +43,14 @@ const OKHCL_LIGHTNESS_MID = 0.5
 const OKHCL_HUE_PREVIEW_MIN_CHROMA = 0.15
 const OKHCL_HUE_PREVIEW_FALLBACK_LIGHTNESS = 0.7
 
-export function createColorPickerModel(color: Color): ColorPickerModel {
+export function createColorPickerModel(color: Color | undefined | null): ColorPickerModel {
+  const c = color ?? { r: 0, g: 0, b: 0, a: 1 }
   const rekaColor = {
     space: 'rgb' as const,
-    r: Math.round(color.r * 255),
-    g: Math.round(color.g * 255),
-    b: Math.round(color.b * 255),
-    alpha: color.a
+    r: Math.round(c.r * 255),
+    g: Math.round(c.g * 255),
+    b: Math.round(c.b * 255),
+    alpha: c.a
   }
 
   return {

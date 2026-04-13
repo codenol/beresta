@@ -765,7 +765,8 @@ export function nodeChangeToProps(
     sharedPluginData: extractSharedPluginData(nc),
     pluginRelaunchData: extractPluginRelaunchData(nc),
     clipsContent: nc.frameMaskDisabled === false && nc.resizeToFit !== true,
-    componentId: extractSymbolId(nc)
+    componentId: extractSymbolId(nc),
+    archetypeId: getBerestaPluginValue(nc, 'archetypeId') ?? undefined
   }
 }
 

@@ -24,6 +24,8 @@ import StyleBadge from './properties/StyleBadge.vue'
 import LibrarySection from './properties/LibrarySection.vue'
 import LintSection from './properties/LintSection.vue'
 import ComponentRulesSection from './properties/ComponentRulesSection.vue'
+import ComponentPanel from './ComponentPanel.vue'
+import LibraryManagementPanel from './LibraryManagementPanel.vue'
 import CodeConnectDialog from './CodeConnectDialog.vue'
 
 const { activeTab } = useAIChat()
@@ -31,6 +33,7 @@ const variablesOpen = ref(false)
 const stylesOpen = ref(false)
 const libraryDialogOpen = ref(false)
 const libraryPanelOpen = ref(false)
+const libraryManagementOpen = ref(false)
 const tokenExportOpen = ref(false)
 const codeConnectOpen = ref(false)
 const { selectedNode: node, selectedCount: multiCount } = useSelectionState()
@@ -111,6 +114,12 @@ const { panels } = useI18n()
       @open-code-connect="codeConnectOpen = true"
     />
 
+    <!-- Component Panel: Tokens / Rules / Code (for COMPONENT nodes with archetypeId) -->
+    <ComponentPanel
+      v-if="node.type === 'COMPONENT'"
+      :node="node"
+    />
+
     <PositionSection />
     <LayoutSection />
     <AppearanceSection />
@@ -133,7 +142,11 @@ const { panels } = useI18n()
     <PageSection />
     <VariablesSection @open-dialog="variablesOpen = true" @open-token-export="tokenExportOpen = true" />
     <StylesSection @open-dialog="stylesOpen = true" />
-    <LibrarySection @open-panel="libraryPanelOpen = true" @open-dialog="libraryDialogOpen = true" />
+    <LibrarySection
+      @open-panel="libraryPanelOpen = true"
+      @open-dialog="libraryDialogOpen = true"
+      @open-management="libraryManagementOpen = true"
+    />
     <LintSection @open-panel="activeTab = 'lint'" />
     <ExportSection />
   </div>
@@ -143,5 +156,6 @@ const { panels } = useI18n()
   <LibraryDialog v-model:open="libraryDialogOpen" />
   <LibraryPanel v-model:open="libraryPanelOpen" />
   <TokenExportDialog v-model:open="tokenExportOpen" />
+  <LibraryManagementPanel v-model:open="libraryManagementOpen" />
   <CodeConnectDialog v-model:open="codeConnectOpen" />
 </template>

@@ -1,4 +1,5 @@
 import { SceneGraph } from '../../../scene-graph'
+import { matchComponentsToArchetypes } from '../../../components/archetype-matcher'
 import { copyEffects, copyFills, copyStrokes } from '../../../scene-graph/copy'
 import { populateInstanceChildren } from '../../../scene-graph/instances'
 import { parseSVGPath } from '../svg/parse-path'
@@ -506,6 +507,8 @@ export function parsePenFile(json: string): SceneGraph {
   if (graph.getPages(true).length === 0) {
     graph.addPage('Page 1')
   }
+
+  matchComponentsToArchetypes(graph)
 
   return graph
 }

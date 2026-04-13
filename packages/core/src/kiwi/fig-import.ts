@@ -1,4 +1,5 @@
 import { SceneGraph, generateId } from '../scene-graph'
+import { matchComponentsToArchetypes } from '../components/archetype-matcher'
 import {
   guidToString,
   nodeChangeToProps,
@@ -384,6 +385,29 @@ export function importNodeChanges(
 
   if (graph.getPages(true).length === 0) {
     graph.addPage('Page 1')
+  }
+
+  matchComponentsToArchetypes(graph)
+
+  // Restore document-level metadata from DOCUMENT node's pluginData
+  for (const nc of nodeChanges) {
+    if (nc.type !== 'DOCUMENT') continue
+    const metaEntry = nc.pluginData?.find(
+      (e) => e.pluginID === 'open-pencil' && e.key === 'open-pencil/berestaMeta'
+    )
+    if (metaEntry) {
+      try {
+        const meta = JSON.parse(metaEntry.value) as Record<string, unknown>
+        if (Array.isArray(meta.archetypeTokenBindings)) graph.archetypeTokenBindings = meta.archetypeTokenBindings as typeof graph.archetypeTokenBindings
+        if (Array.isArray(meta.archetypeCodeBindings)) graph.archetypeCodeBindings = meta.archetypeCodeBindings as typeof graph.archetypeCodeBindings
+        if (Array.isArray(meta.archetypeDesignBindings)) graph.archetypeDesignBindings = meta.archetypeDesignBindings as typeof graph.archetypeDesignBindings
+        if (Array.isArray(meta.componentRules)) graph.componentRules = meta.componentRules as typeof graph.componentRules
+        if (Array.isArray(meta.libraryRefs)) graph.libraryRefs = meta.libraryRefs as typeof graph.libraryRefs
+      } catch {
+        // Malformed metadata — ignore
+      }
+    }
+    break
   }
 
   return graph

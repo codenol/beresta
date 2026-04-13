@@ -19,6 +19,18 @@ import {
 export type { GUID, Color } from '../types'
 import type { Matrix, Vector, Color, Rect } from '../types'
 import type { Emitter } from 'nanoevents'
+import type {
+  ArchetypeDesignBinding,
+  ArchetypeCodeBinding,
+  ArchetypeTokenBinding,
+  ComponentRule
+} from '../components/archetypes'
+export type {
+  ArchetypeDesignBinding,
+  ArchetypeCodeBinding,
+  ArchetypeTokenBinding,
+  ComponentRule
+} from '../components/archetypes'
 
 export interface SceneGraphEvents {
   'node:created': (node: SceneNode) => void
@@ -368,6 +380,9 @@ export interface SceneNode {
 
   libraryRef: { libraryId: string; itemId: string } | null
 
+  /** Bound archetype id (e.g. 'button') — set on COMPONENT / INSTANCE nodes */
+  archetypeId?: string
+
   pluginData: PluginDataEntry[]
   sharedPluginData: SharedPluginDataEntry[]
   pluginRelaunchData: PluginRelaunchDataEntry[]
@@ -577,6 +592,18 @@ const CONTAINER_TYPES = new Set<NodeType>([
   'INSTANCE'
 ])
 
+// ---------------------------------------------------------------------------
+// Library reference type (stored per-document, not part of archetypes.ts)
+// ---------------------------------------------------------------------------
+
+/** Reference to an external library stored in document metadata (for team sharing). */
+export interface LibraryRef {
+  id: string
+  name: string
+  url?: string
+  type: 'builtin' | 'file' | 'url'
+}
+
 export class SceneGraph {
   nodes = new Map<string, SceneNode>()
   images = new Map<string, Uint8Array>()
@@ -590,6 +617,14 @@ export class SceneGraph {
   readonly emitter: Emitter<SceneGraphEvents> = createNanoEvents()
   private absPosCache = new Map<string, Vector>()
   instanceIndex = new Map<string, Set<string>>()
+
+  // Component archetype bindings (persisted per-document)
+  archetypeDesignBindings: ArchetypeDesignBinding[] = []
+  archetypeCodeBindings: ArchetypeCodeBinding[] = []
+  archetypeTokenBindings: ArchetypeTokenBinding[] = []
+  componentRules: ComponentRule[] = []
+  /** URL-based library references for team sharing (persisted in .pen metadata) */
+  libraryRefs: LibraryRef[] = []
 
   constructor() {
     const root = createDefaultNode('FRAME', {

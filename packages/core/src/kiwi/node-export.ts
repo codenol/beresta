@@ -4,6 +4,17 @@ import type { SceneGraph, SceneNode } from '../scene-graph'
 import type { Color, GUID, Matrix } from '../types'
 import type { NodeChange, Paint } from './codec'
 
+const BERESTA_PLUGIN_ID = 'open-pencil'
+const ARCHETYPE_ID_PLUGIN_KEY = 'archetypeId'
+
+function upsertBerestaPluginData(node: SceneNode, key: string, value: string): void {
+  const pluginData = node.pluginData.filter(
+    (entry) => !(entry.pluginId === BERESTA_PLUGIN_ID && entry.key === key)
+  )
+  pluginData.push({ pluginId: BERESTA_PLUGIN_ID, key, value })
+  node.pluginData = pluginData
+}
+
 export type KiwiNodeChange = NodeChange & Record<string, unknown>
 
 interface SceneNodeToKiwiContext {
@@ -135,6 +146,10 @@ export function sceneNodeToKiwiWithContext(
   context.serializeLayoutProps(node, nc)
   context.serializeGeometry(node, nc, context.blobs)
   context.serializeVariableBindings(node, nc, context.graph, context.varIdToGuid)
+
+  if (node.archetypeId) {
+    upsertBerestaPluginData(node, ARCHETYPE_ID_PLUGIN_KEY, node.archetypeId)
+  }
 
   const pluginData = mergePluginData(node.pluginData, node.sharedPluginData)
   if (pluginData.length > 0) nc.pluginData = pluginData

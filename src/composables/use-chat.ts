@@ -8,6 +8,7 @@ import { DirectChatTransport, stepCountIs, ToolLoopAgent } from 'ai'
 import { computed, ref, watch } from 'vue'
 
 import SYSTEM_PROMPT from '@/ai/system-prompt.md?raw'
+import { libraryRegistry } from '@beresta/core'
 import { MAX_AGENT_STEPS, createAITools, recordStepUsage, resetRunSteps } from '@/ai/tools'
 import { useChatSessions } from '@/composables/use-chat-sessions'
 import { getActiveEditorStore } from '@/stores/editor'
@@ -257,7 +258,23 @@ function createTransport(store: ReturnType<typeof getActiveEditorStore>) {
   // (e.g. 2048–8192 tokens) and the full system prompt alone can overflow them.
   const tools = isLMStudio ? undefined : createAITools(store)
   const effectiveMaxOutputTokens = isLMStudio ? undefined : maxOutputTokens.value
-  const effectiveInstructions = isLMStudio ? undefined : SYSTEM_PROMPT
+
+  // Build component list suffix to inject into the system prompt so the AI can
+  // reference available preset components by name and library ID.
+  let componentListSuffix = ''
+  if (!isLMStudio) {
+    const components = libraryRegistry.getComponents()
+    if (components.length > 0) {
+      const lines = components.map(({ libraryId, node }) => {
+        const archId = (node as typeof node & { archetypeId?: string }).archetypeId
+        const archTag = archId ? ` [${archId}]` : ''
+        return `- ${node.name}${archTag} (libraryId: ${libraryId}, id: ${node.id})`
+      })
+      componentListSuffix = `\n\n## Available Preset Components\n\nUse \`create_instance\` with these IDs when building layouts. Prefer instances over custom renders for known archetypes.\n\n${lines.join('\n')}`
+    }
+  }
+
+  const effectiveInstructions = isLMStudio ? undefined : SYSTEM_PROMPT + componentListSuffix
 
   const agent = new ToolLoopAgent({
     model: createModel(),

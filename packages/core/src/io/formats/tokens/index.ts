@@ -398,3 +398,10 @@ export function exportTokens(graph: SceneGraph, format: TokenExportFormat): stri
   if (format === 'tailwind') return exportTailwindTheme(graph)
   return exportTokensJSON(graph)
 }
+
+// Re-export import side
+export { importTokensJSON } from './import'
+export type { ImportTokensOptions } from './import'
+
+// Component SCSS export
+export { exportComponentSCSS } from './export-component-scss'

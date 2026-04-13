@@ -411,6 +411,29 @@ export {
 export * from './io'
 export * from './lint'
 
+export {
+  buildStandardLibrary,
+  BERESTA_STANDARD_LIBRARY_ID,
+  BERESTA_STANDARD_LIBRARY_NAME,
+} from './components/presets/build-library'
+export {
+  BUILT_IN_ARCHETYPES,
+  buildAliasMap,
+  matchArchetype,
+  normalize as normalizeArchetypeName,
+  type ComponentArchetype,
+  type ArchetypeCategory,
+  type ComponentPropSchema,
+  type ArchetypeDesignBinding,
+  type ArchetypeCodeBinding,
+  type ArchetypeTokenBinding,
+  type ComponentRule,
+} from './components/archetypes'
+export { importTokensJSON, type ImportTokensOptions } from './io/formats/tokens/import'
+export { exportComponentSCSS } from './io/formats/tokens/export-component-scss'
+export { exportComponentReact, exportAllComponentsReact } from './io/formats/code/export-component-react'
+export type { LibraryRef } from './scene-graph'
+
 export { CODEGEN_PROMPT } from './tools/prompts/codegen-prompt'
 export {
   setPexelsApiKey,
