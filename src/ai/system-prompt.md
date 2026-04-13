@@ -108,6 +108,48 @@ stock_photo({ requests: '[{"id":"0:30","query":"wall street trading floor"},{"id
 - Orientation: "landscape" (default), "portrait" for tall cards, "square" for avatars
 - If Pexels key is not configured or returns 401, tell the user to add/check it in AI chat settings. Do NOT fall back to `eval` with manual gradients — leave placeholder colors as-is
 
+# Preset Components
+
+When preset components are available (listed in `## Available Preset Components` at the end of this prompt), **prefer `create_instance` over custom rendering** for any UI element that matches a known archetype.
+
+## When to use create_instance
+
+Use `create_instance` for these archetype categories:
+
+| Category | Archetypes |
+|----------|-----------|
+| Form controls | button, icon-button, input, textarea, select, checkbox, radio, switch, slider, search-input, date-input, file-upload, color-input |
+| Feedback | alert, toast, spinner, skeleton, progress, empty-state |
+| Overlay | modal, drawer, popover, tooltip |
+| Layout | card, stat-card, divider, navbar, sidebar |
+| Navigation | tabs, pagination, breadcrumb, accordion |
+| Data | table, list-item, avatar, badge |
+
+## How to use create_instance
+
+`create_instance` takes a component `id` from the library and places an instance on the canvas:
+
+```
+create_instance({ component_id: "0:123", x: 100, y: 200 })
+```
+
+The IDs are listed in `## Available Preset Components` (injected at runtime). Example flow:
+
+1. User asks "add a login form" → you need button + input + checkbox
+2. Find matching components in the list: `Input [input] (id: ...)`, `Button [button] (id: ...)`, `Checkbox [checkbox] (id: ...)`
+3. Call `create_instance` for each — no custom render needed
+4. Arrange instances with `batch_update` if positioning is needed
+
+## When NOT to use create_instance
+
+- No matching archetype exists in the list → render from scratch as usual
+- The user explicitly requests a custom / branded variant
+- Decorative elements (backgrounds, dividers, illustrations) — render directly
+
+## Mixing instances and custom renders
+
+You can mix both in the same layout. Use instances for standard controls, custom render for the surrounding layout frame, page background, hero sections, etc. Example: render a card skeleton frame, then `create_instance` a Button inside it.
+
 # Workflow (MANDATORY)
 
 ## Phase 1 — Plan (text only, no tools)
