@@ -77,7 +77,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div data-test-id="editor-root" class="flex h-screen w-screen flex-col">
+  <div data-test-id="editor-root" class="flex h-full w-full flex-col">
     <SafariBanner />
     <TabBar />
 
