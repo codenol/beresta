@@ -45,11 +45,11 @@ function isDone(key: string): boolean {
 
 <template>
   <nav class="flex h-full w-12 shrink-0 flex-col items-center border-r border-border bg-canvas py-2">
-    <!-- Back to Projects -->
-    <Tip label="Проекты" side="right">
+    <!-- Back to Home -->
+    <Tip label="Главная" side="right">
       <button
         class="flex size-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-hover hover:text-surface"
-        @click="router.push('/projects')"
+        @click="router.push('/home')"
       >
         <IconArrowLeft class="size-4" />
       </button>
@@ -95,11 +95,11 @@ function isDone(key: string): boolean {
     <div class="mt-auto flex flex-col items-center gap-0.5">
       <div class="mb-1.5 w-5 border-t border-border" />
 
-      <Tip label="Библиотека" side="right">
+      <Tip label="Библиотеки" side="right">
         <RouterLink
-          to="/library"
+          to="/libraries"
           class="flex size-9 items-center justify-center rounded-lg transition-colors"
-          :class="isActive('/library')
+          :class="isActive('/libraries') || isActive('/library/')
             ? 'bg-accent/15 text-accent'
             : 'text-muted hover:bg-hover hover:text-surface'"
         >

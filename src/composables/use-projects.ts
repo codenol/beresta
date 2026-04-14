@@ -33,6 +33,7 @@ export interface Product {
   id: string
   title: string
   screens: Screen[]
+  connectedLibraryIds: string[]
 }
 
 export interface ProjectContext {
@@ -49,7 +50,7 @@ const LS_CONTEXT  = 'bereста:context'
 function loadProducts(): Product[] {
   try {
     const raw = localStorage.getItem(LS_PRODUCTS)
-    return raw ? (JSON.parse(raw) as Product[]) : defaultProducts()
+    return raw ? (JSON.parse(raw) as any[]).map(migrateProduct) : defaultProducts()
   } catch {
     return defaultProducts()
   }
@@ -64,11 +65,19 @@ function loadContext(): ProjectContext | null {
   }
 }
 
+function migrateProduct(p: any): Product {
+  return {
+    ...p,
+    connectedLibraryIds: Array.isArray(p.connectedLibraryIds) ? p.connectedLibraryIds : [],
+  }
+}
+
 function defaultProducts(): Product[] {
   return [
     {
       id: 'p1',
       title: 'Мобильное приложение',
+      connectedLibraryIds: ['lib-core', 'lib-mobile'],
       screens: [
         {
           id: 's1',
@@ -92,6 +101,7 @@ function defaultProducts(): Product[] {
     {
       id: 'p2',
       title: 'Веб-дашборд',
+      connectedLibraryIds: ['lib-core'],
       screens: [
         {
           id: 's3',
@@ -212,9 +222,24 @@ export function useProjects() {
   // ── CRUD ────────────────────────────────────────────────────────────────────
 
   function addProduct(title: string): Product {
-    const product: Product = { id: `p-${Date.now()}`, title, screens: [] }
+    const product: Product = { id: `p-${Date.now()}`, title, screens: [], connectedLibraryIds: [] }
     products.value.push(product)
     return product
+  }
+
+  function connectLibrary(productId: string, libraryId: string) {
+    const product = findProduct(productId)
+    if (!product) return
+    if (!product.connectedLibraryIds.includes(libraryId)) {
+      product.connectedLibraryIds.push(libraryId)
+    }
+  }
+
+  function disconnectLibrary(productId: string, libraryId: string) {
+    const product = findProduct(productId)
+    if (!product) return
+    const i = product.connectedLibraryIds.indexOf(libraryId)
+    if (i !== -1) product.connectedLibraryIds.splice(i, 1)
   }
 
   function addScreen(productId: string, title: string): Screen | null {
@@ -279,6 +304,8 @@ export function useProjects() {
     deleteProduct,
     deleteScreen,
     deleteFeature,
+    connectLibrary,
+    disconnectLibrary,
     loadFromDisk,
     PIPELINE_STEPS,
   }

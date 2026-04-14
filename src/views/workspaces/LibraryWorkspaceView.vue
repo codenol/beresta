@@ -2,13 +2,34 @@
 import { computed, ref } from 'vue'
 import { ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb, ScrollAreaViewport, SplitterGroup, SplitterPanel, SplitterResizeHandle } from 'reka-ui'
 import { generateText } from 'ai'
+import { useRoute, useRouter } from 'vue-router'
 
 import Tip from '@/components/ui/Tip.vue'
 import { toast } from '@/utils/toast'
 import { createModel } from '@/composables/use-chat'
 import { useWorkspaceFs } from '@/composables/use-workspace-fs'
+import { useLibraries } from '@/composables/use-libraries'
+import { useProjects } from '@/composables/use-projects'
 
 const { workspacePath, writeDesignMd } = useWorkspaceFs()
+
+const route  = useRoute()
+const router = useRouter()
+const { libraries } = useLibraries()
+const { products }  = useProjects()
+
+const currentLibrary = computed(() => {
+  const id = typeof route.params.id === 'string' ? route.params.id : undefined
+  return id
+    ? (libraries.value.find(l => l.id === id) ?? libraries.value[0] ?? null)
+    : (libraries.value[0] ?? null)
+})
+
+const connectedProjects = computed(() =>
+  currentLibrary.value
+    ? products.value.filter(p => p.connectedLibraryIds.includes(currentLibrary.value!.id))
+    : []
+)
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -239,7 +260,14 @@ const filteredEffects = computed(() =>
   <div class="flex h-full w-full flex-col overflow-hidden">
     <!-- Top bar -->
     <header class="flex h-10 shrink-0 items-center gap-2 border-b border-border px-3">
-      <span class="rounded border border-border px-2 py-0.5 text-[11px] font-medium text-muted">v1.4.2</span>
+      <button
+        class="flex items-center gap-1.5 rounded px-2 py-1 text-xs text-muted transition-colors hover:bg-hover hover:text-surface"
+        @click="router.push('/libraries')"
+      >
+        <icon-lucide-arrow-left class="size-3.5" />
+      </button>
+      <span class="text-sm font-medium text-surface">{{ currentLibrary?.name ?? 'Библиотека' }}</span>
+      <span class="rounded border border-border px-2 py-0.5 text-[11px] font-medium text-muted">v{{ currentLibrary?.version ?? '—' }}</span>
 
       <button
         class="flex items-center gap-1.5 rounded bg-accent px-2.5 py-1 text-xs font-medium text-white hover:bg-accent/80 transition-colors"
@@ -314,6 +342,23 @@ const filteredEffects = computed(() =>
                 <span class="flex-1 text-left">{{ SECTION_LABELS[section] }}</span>
                 <span class="rounded bg-canvas px-1.5 py-0.5 text-[10px]">{{ sectionCounts[section] }}</span>
               </button>
+            </div>
+
+            <!-- Connected projects section -->
+            <div class="mt-1 border-t border-border/60 px-3 py-2">
+              <span class="text-[10px] uppercase tracking-wider text-muted">Проекты</span>
+              <div v-if="!connectedProjects.length" class="mt-1.5 text-[11px] text-muted/50">
+                Не подключено
+              </div>
+              <div
+                v-for="p in connectedProjects"
+                :key="p.id"
+                class="mt-1.5 flex cursor-pointer items-center gap-1.5 text-xs text-surface transition-colors hover:text-accent"
+                @click="router.push('/projects')"
+              >
+                <icon-lucide-folder class="size-3 shrink-0 text-accent/50" />
+                <span class="truncate">{{ p.title }}</span>
+              </div>
             </div>
           </ScrollAreaViewport>
           <ScrollAreaScrollbar orientation="vertical" class="w-1.5">

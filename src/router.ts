@@ -10,24 +10,23 @@ const router = createRouter({
     { path: '/demo', component: EditorView, meta: { demo: true } },
     { path: '/share/:roomId', component: EditorView },
 
-    // Top-level: Project Navigator
-    {
-      path: '/projects',
-      component: () => import('./views/ProjectNavigatorView.vue'),
-    },
+    // Hub
+    { path: '/home', component: () => import('./views/HomeView.vue') },
 
-    // Top-level: Library (global, shared across all projects)
-    {
-      path: '/library',
-      component: () => import('./views/workspaces/LibraryWorkspaceView.vue'),
-    },
+    // Top-level: Project Navigator
+    { path: '/projects', component: () => import('./views/ProjectNavigatorView.vue') },
+
+    // Top-level: Libraries
+    { path: '/libraries', component: () => import('./views/LibrariesView.vue') },
+    { path: '/library',   redirect: '/libraries' },
+    { path: '/library/:id', component: () => import('./views/workspaces/LibraryWorkspaceView.vue') },
 
     // Workspace pipeline (4 steps)
     {
       path: '/workspace',
       component: WorkspaceLayout,
       children: [
-        { path: '', redirect: '/projects' },
+        { path: '', redirect: '/home' },
         {
           path: 'analytics',
           component: () => import('./views/workspaces/AnalyticsView.vue'),

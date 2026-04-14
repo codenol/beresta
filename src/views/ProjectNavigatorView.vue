@@ -5,6 +5,7 @@ import { ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb, ScrollAreaViewpor
 
 import Tip from '@/components/ui/Tip.vue'
 import { useProjects, type Feature, type Product, type Screen } from '@/composables/use-projects'
+import { useLibraries, LIBRARY_TYPE_COLORS } from '@/composables/use-libraries'
 import {
   useWorkspaceFs,
   readProjectMd, writeProjectMd,
@@ -17,8 +18,10 @@ const {
   lastCompletedStep, stepProgress,
   addProduct, addScreen, addFeature,
   deleteProduct, deleteScreen, deleteFeature,
+  connectLibrary, disconnectLibrary,
   setContext, loadFromDisk,
 } = useProjects()
+const { libraries } = useLibraries()
 const { isDesktop, openWorkspaceDialog } = useWorkspaceFs()
 
 const isOpeningWorkspace = ref(false)
@@ -93,6 +96,24 @@ function scheduleScreenSave(productId: string, screenId: string) {
 
 function workspaceName(path: string): string {
   return path.split('/').filter(Boolean).pop() ?? path
+}
+
+// ── Library connections ────────────────────────────────────────────────────────
+
+const managingLibrariesForProduct = ref<string | null>(null)
+
+function toggleLibraryConnection(productId: string, libraryId: string) {
+  const product = products.value.find(p => p.id === productId)
+  if (!product) return
+  if (product.connectedLibraryIds.includes(libraryId)) {
+    disconnectLibrary(productId, libraryId)
+  } else {
+    connectLibrary(productId, libraryId)
+  }
+}
+
+function productConnectedLibraries(product: Product) {
+  return libraries.value.filter(l => product.connectedLibraryIds.includes(l.id))
 }
 
 // ── UI state ───────────────────────────────────────────────────────────────────
@@ -219,13 +240,23 @@ function stepColor(feature: Feature): string {
         </button>
       </Tip>
 
-      <Tip label="Библиотека компонентов" side="bottom">
+      <Tip label="Главная" side="bottom">
         <button
           class="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted transition-colors hover:bg-hover hover:text-surface"
-          @click="$router.push('/library')"
+          @click="$router.push('/home')"
+        >
+          <icon-lucide-home class="size-3.5" />
+          Главная
+        </button>
+      </Tip>
+
+      <Tip label="Библиотеки компонентов" side="bottom">
+        <button
+          class="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted transition-colors hover:bg-hover hover:text-surface"
+          @click="$router.push('/libraries')"
         >
           <icon-lucide-library class="size-3.5" />
-          Библиотека
+          Библиотеки
         </button>
       </Tip>
       <button
@@ -275,10 +306,28 @@ function stepColor(feature: Feature): string {
                   />
                   <icon-lucide-folder class="size-4 shrink-0 text-accent" />
                   <span class="flex-1 text-sm font-medium text-surface">{{ product.title }}</span>
+                  <!-- Library badges -->
+                  <div class="flex items-center gap-1">
+                    <span
+                      v-for="lib in productConnectedLibraries(product)"
+                      :key="lib.id"
+                      class="rounded px-1.5 py-0.5 text-[10px]"
+                      :class="[LIBRARY_TYPE_COLORS[lib.type].bg, LIBRARY_TYPE_COLORS[lib.type].text]"
+                    >{{ lib.name }}</span>
+                  </div>
                   <span class="text-xs text-muted">{{ featureCount(product) }} фич</span>
                 </button>
                 <!-- Product actions (on hover) -->
                 <div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <Tip label="Подключить библиотеки" side="top">
+                    <button
+                      class="flex size-6 items-center justify-center rounded text-muted hover:bg-hover hover:text-surface"
+                      :class="managingLibrariesForProduct === product.id ? 'text-accent' : ''"
+                      @click.stop="managingLibrariesForProduct = managingLibrariesForProduct === product.id ? null : product.id"
+                    >
+                      <icon-lucide-link class="size-3.5" />
+                    </button>
+                  </Tip>
                   <Tip label="Редактировать project.md" side="top">
                     <button
                       class="flex size-6 items-center justify-center rounded text-muted hover:bg-hover hover:text-surface"
@@ -304,6 +353,33 @@ function stepColor(feature: Feature): string {
                       <icon-lucide-trash-2 class="size-3.5" />
                     </button>
                   </Tip>
+                </div>
+              </div>
+
+              <!-- Library connections manager -->
+              <div
+                v-if="managingLibrariesForProduct === product.id"
+                class="border-t border-border/60 bg-canvas/30 px-4 py-2.5"
+              >
+                <div class="mb-2 flex items-center justify-between">
+                  <span class="text-[11px] text-muted">Подключённые библиотеки</span>
+                  <button class="text-[11px] text-muted hover:text-surface" @click="managingLibrariesForProduct = null">Готово</button>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button
+                    v-for="lib in libraries"
+                    :key="lib.id"
+                    class="rounded-lg border px-2.5 py-1 text-xs transition-colors"
+                    :class="product.connectedLibraryIds.includes(lib.id)
+                      ? [LIBRARY_TYPE_COLORS[lib.type].bg, LIBRARY_TYPE_COLORS[lib.type].text, LIBRARY_TYPE_COLORS[lib.type].border]
+                      : 'border-border text-muted hover:bg-hover hover:text-surface'"
+                    @click="toggleLibraryConnection(product.id, lib.id)"
+                  >
+                    {{ lib.name }}
+                  </button>
+                  <span v-if="libraries.length === 0" class="text-[11px] text-muted/50">
+                    Нет доступных библиотек
+                  </span>
                 </div>
               </div>
 
