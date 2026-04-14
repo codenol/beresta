@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useTypography } from '@open-pencil/vue/controls/useTypography'
+defineOptions({ inheritAttrs: false })
+import { useTypography } from '@beresta/vue/controls/useTypography'
 
 import type { AcceptableValue } from 'reka-ui'
 

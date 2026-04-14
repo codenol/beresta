@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 
-import { useEditor } from '@open-pencil/vue/context/editorContext'
+import { useEditor } from '@beresta/vue/context/editorContext'
 import { provideLayerTree } from './context'
+
+defineOptions({ inheritAttrs: false })
 
 import type { LayerNode } from './context'
 
-const { indentPerLevel = 16 } = defineProps<{
+const props = defineProps<{
   indentPerLevel?: number
 }>()
+
+const indentPerLevel = computed(() => props.indentPerLevel ?? 16)
 
 const emit = defineEmits<{
   select: [id: string, additive: boolean]
@@ -42,10 +46,15 @@ const treeKey = ref(0)
 const expanded = ref<string[]>([])
 const selectedIds = computed(() => editor.state.selectedIds)
 
-watch([() => editor.state.sceneVersion, () => editor.state.currentPageId], () => {
+watch([() => editor.state.sceneVersion, () => editor.state.currentPageId], ([, newPage], [, oldPage]) => {
   items.value = buildTree(editor.state.currentPageId)
-  treeKey.value++
+  if (newPage !== oldPage) treeKey.value++
 })
+
+// Stable function references — must not be recreated on every render
+// so reka-ui's TreeRoot doesn't reset flattenItems when these props change
+const getKey = (v: LayerNode) => v.id
+const getChildren = (v: LayerNode) => v.children
 
 const rowRefs = new Map<string, HTMLElement>()
 
@@ -111,7 +120,7 @@ provideLayerTree({
   expanded,
   treeKey,
   selectedIds,
-  indentPerLevel,
+  indentPerLevel: indentPerLevel.value,
   select,
   toggleExpand,
   toggleVisibility: (id: string) => {
@@ -138,7 +147,7 @@ provideLayerTree({
     :selected-ids="selectedIds"
     :select="select"
     :toggle-expand="toggleExpand"
-    :get-key="(v: LayerNode) => v.id"
-    :get-children="(v: LayerNode) => v.children"
+    :get-key="getKey"
+    :get-children="getChildren"
   />
 </template>

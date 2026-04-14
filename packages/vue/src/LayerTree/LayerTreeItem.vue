@@ -5,7 +5,7 @@ import { useLayerTree } from './context'
 
 import type { LayerNode } from './context'
 
-const { node, level, hasChildren } = defineProps<{
+const props = defineProps<{
   node: LayerNode
   level: number
   hasChildren: boolean
@@ -21,58 +21,63 @@ const emit = defineEmits<{
 
 const ctx = useLayerTree()
 
-const isSelected = computed(() => ctx.selectedIds.value.has(node.id))
+const isSelected = computed(() => props.node ? ctx.selectedIds.value.has(props.node.id) : false)
 const isDragging = computed(() => false)
-const padLeft = computed(() => `${8 + (level - 1) * ctx.indentPerLevel}px`)
+const padLeft = computed(() => `${8 + (props.level - 1) * ctx.indentPerLevel}px`)
 
 const rowEl = ref<HTMLElement | null>(null)
 
 function onRef(el: unknown) {
   const htmlEl = el as HTMLElement | null
   rowEl.value = htmlEl
-  ctx.setRowRef(node.id, htmlEl)
+  if (props.node) ctx.setRowRef(props.node.id, htmlEl)
 }
 
 defineExpose({ rowEl })
 </script>
 
 <template>
-  <div :ref="onRef" :data-node-id="node.id">
+  <div v-if="props.node" :ref="onRef" :data-node-id="props.node.id">
     <slot
-      :node="node"
-      :level="level"
-      :has-children="hasChildren"
+      :node="props.node"
+      :level="props.level"
+      :has-children="props.hasChildren"
       :is-selected="isSelected"
       :is-dragging="isDragging"
       :pad-left="padLeft"
       :select="
         (additive: boolean) => {
-          emit('select', node.id, additive)
-          ctx.select(node.id, additive)
+          if (!props.node) return
+          emit('select', props.node.id, additive)
+          ctx.select(props.node.id, additive)
         }
       "
       :toggle-expand="
         () => {
-          emit('toggleExpand', node.id)
-          ctx.toggleExpand(node.id)
+          if (!props.node) return
+          emit('toggleExpand', props.node.id)
+          ctx.toggleExpand(props.node.id)
         }
       "
       :toggle-visibility="
         () => {
-          emit('toggleVisibility', node.id)
-          ctx.toggleVisibility(node.id)
+          if (!props.node) return
+          emit('toggleVisibility', props.node.id)
+          ctx.toggleVisibility(props.node.id)
         }
       "
       :toggle-lock="
         () => {
-          emit('toggleLock', node.id)
-          ctx.toggleLock(node.id)
+          if (!props.node) return
+          emit('toggleLock', props.node.id)
+          ctx.toggleLock(props.node.id)
         }
       "
       :rename="
         (name: string) => {
-          emit('rename', node.id, name)
-          ctx.rename(node.id, name)
+          if (!props.node) return
+          emit('rename', props.node.id, name)
+          ctx.rename(props.node.id, name)
         }
       "
     />

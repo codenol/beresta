@@ -4,13 +4,14 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui'
 
-import { colorToCSS } from '@open-pencil/core'
+import { colorToCSS } from '@beresta/core'
 import Tip from '@/components/ui/Tip.vue'
 import { usePopoverUI } from '@/components/ui/popover'
 import { DEFAULT_COLLAB_STATE, useCollabInjected } from '@/composables/use-collab'
+import { usePreview } from '@/composables/use-preview'
 import { toast } from '@/utils/toast'
 import { initials } from '@/utils/text'
-import { useI18n } from '@open-pencil/vue'
+import { useI18n } from '@beresta/vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,6 +19,7 @@ const cls = usePopoverUI({ content: 'z-50 w-72 p-3' })
 const collab = useCollabInjected()
 const { copy, copied } = useClipboard({ copiedDuring: 2000 })
 const { dialogs } = useI18n()
+const { toggle: togglePreview, isOpen: previewOpen } = usePreview()
 
 const joinInput = ref('')
 const nameDraft = ref(collab?.state.value.localName ?? '')
@@ -119,6 +121,17 @@ function onDisconnect() {
     </div>
 
     <div class="flex-1" />
+
+    <!-- Preview button -->
+    <button
+      data-test-id="preview-button"
+      class="flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-surface transition-colors hover:bg-hover"
+      :class="previewOpen ? 'bg-accent/10 text-accent border-accent/30' : ''"
+      @click="togglePreview"
+    >
+      <icon-lucide-monitor class="size-3.5" />
+      {{ dialogs.preview }}
+    </button>
 
     <!-- Share button / popover -->
     <PopoverRoot v-model:open="popoverOpen">

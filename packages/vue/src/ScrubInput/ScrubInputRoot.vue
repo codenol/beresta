@@ -4,6 +4,8 @@ import { useEventListener } from '@vueuse/core'
 
 import { provideScrubInput } from './context'
 
+defineOptions({ inheritAttrs: false })
+
 const props = withDefaults(
   defineProps<{
     modelValue: number | symbol

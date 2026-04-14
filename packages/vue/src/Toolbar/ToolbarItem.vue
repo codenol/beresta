@@ -3,17 +3,19 @@ import { computed } from 'vue'
 
 import { useToolbar } from './context'
 
-import type { Tool } from '@open-pencil/core/editor'
+defineOptions({ inheritAttrs: false })
 
-const { tool } = defineProps<{
+import type { Tool } from '@beresta/core/editor'
+
+const props = defineProps<{
   tool: Tool
 }>()
 
 const { activeTool, setTool } = useToolbar()
 
-const isActive = computed(() => activeTool.value === tool)
+const isActive = computed(() => activeTool.value === props.tool)
 </script>
 
 <template>
-  <slot :active="isActive" :select="() => setTool(tool)" :tool="tool" />
+  <slot :active="isActive" :select="() => setTool(props.tool)" :tool="props.tool" />
 </template>

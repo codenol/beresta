@@ -16,14 +16,16 @@ const devAutomationAuthToken = randomUUID()
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST
+// @ts-expect-error process is a nodejs global
+const isTauriBuild = !!process.env.TAURI_ENV_PLATFORM
 const devAutomationCorsOrigin = host ? `http://${host}:1420` : 'http://localhost:1420'
 
 export default defineConfig(async ({ command }) => ({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      '@open-pencil/vue': resolve(__dirname, 'packages/vue/src'),
-      '@open-pencil/core': resolve(__dirname, 'packages/core/src'),
+      '@beresta/vue': resolve(__dirname, 'packages/vue/src'),
+      '@beresta/core': resolve(__dirname, 'packages/core/src'),
       'opentype.js': resolve(__dirname, 'node_modules/opentype.js/dist/opentype.module.js'),
       // vue-stream-markdown eagerly loads mermaid/beautiful-mermaid as optional peer deps.
       // Alias to empty shims to avoid runtime errors and reduce bundle size.
@@ -32,7 +34,7 @@ export default defineConfig(async ({ command }) => ({
     }
   },
   define: {
-    __OPENPENCIL_LOCAL_AUTOMATION_TOKEN__: JSON.stringify(
+    __BERESTA_LOCAL_AUTOMATION_TOKEN__: JSON.stringify(
       command === 'serve' ? devAutomationAuthToken : null
     )
   },
@@ -70,14 +72,18 @@ export default defineConfig(async ({ command }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: { enabled: false },
-      workbox: {
-        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,wasm,png,ico,ttf,webmanifest}'],
-        navigateFallback: '/index.html'
-      },
+      ...(isTauriBuild
+        ? { selfDestroying: true }
+        : {
+            workbox: {
+              maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+              globPatterns: ['**/*.{js,css,html,wasm,png,ico,ttf,webmanifest}'],
+              navigateFallback: '/index.html'
+            }
+          }),
       manifest: {
-        name: 'OpenPencil',
-        short_name: 'OpenPencil',
+        name: 'Nork',
+        short_name: 'Nork',
         description: 'Open-source design editor',
         display: 'standalone',
         orientation: 'any',

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { colorToHexRaw, parseColor } from '@open-pencil/core'
+import { colorToHexRaw, parseColor } from '@beresta/core'
 
-import type { Color } from '@open-pencil/core'
+defineOptions({ inheritAttrs: false })
+
+import type { Color } from '@beresta/core'
 import type { OkHCLControls } from './types'
 
 const props = defineProps<{
@@ -13,7 +15,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ update: [color: Color] }>()
 
-const hex = computed(() => colorToHexRaw(props.color))
+const hex = computed(() => props.color ? colorToHexRaw(props.color) : 'f5f5f5')
 
 function updateFromHex(value: string) {
   const parsed = parseColor(value.startsWith('#') ? value : `#${value}`)
@@ -23,8 +25,8 @@ function updateFromHex(value: string) {
 
 <template>
   <slot
-    :color="color"
-    :editable="editable ?? false"
+    :color="props.color"
+    :editable="props.editable ?? false"
     :hex="hex"
     :update-from-hex="updateFromHex"
     :update-color="(nextColor: Color) => emit('update', nextColor)"

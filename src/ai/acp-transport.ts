@@ -12,7 +12,7 @@ import type {
   RequestPermissionRequest,
   RequestPermissionResponse
 } from '@agentclientprotocol/sdk'
-import type { ACPAgentDef } from '@open-pencil/core'
+import type { ACPAgentDef } from '@beresta/core'
 import type { ChatTransport, UIMessage, UIMessageChunk } from 'ai'
 
 type TauriChild = {
@@ -36,7 +36,7 @@ function isMissingCommandError(message: string): boolean {
 function missingCommandMessage(agentDef?: ACPAgentDef): string {
   if (!agentDef) return 'ACP agent CLI is not installed.'
   if (!agentDef.installCommand) {
-    return `"${agentDef.command}" is not installed. Install it and restart OpenPencil.`
+    return `"${agentDef.command}" is not installed. Install it and restart Nork.`
   }
   return `"${agentDef.command}" is not installed. Install it with: ${agentDef.installCommand}`
 }
@@ -217,9 +217,16 @@ export class ACPChatTransport implements ChatTransport<UIMessage> {
   private async spawnAgent(): Promise<ACPSession> {
     const { Command } = await import('@tauri-apps/plugin-shell')
 
-    const command = Command.create(this.agentDef.command, this.agentDef.args, {
-      encoding: 'raw'
-    })
+    // Agents that are bundled as Tauri sidecars (compiled into the .app).
+    // Key = ACPAgentID, value = sidecar path relative to the app binary.
+    const BUNDLED_SIDECARS: Record<string, string> = {
+      'claude-code': 'binaries/claude-agent-acp'
+    }
+
+    const sidecarPath = BUNDLED_SIDECARS[this.agentDef.id]
+    const command = sidecarPath
+      ? Command.sidecar(sidecarPath, this.agentDef.args, { encoding: 'raw' })
+      : Command.create(this.agentDef.command, this.agentDef.args, { encoding: 'raw' })
 
     const stdoutChunks: Uint8Array[] = []
     let stdoutResolver: ((chunk: Uint8Array | null) => void) | null = null
@@ -323,7 +330,7 @@ export class ACPChatTransport implements ChatTransport<UIMessage> {
         mcpServers: [
           {
             type: 'http' as const,
-            name: 'open-pencil',
+            name: 'beresta',
             url: 'http://127.0.0.1:7600/mcp',
             headers: automationAuthToken
               ? [{ name: 'Authorization', value: `Bearer ${automationAuthToken}` }]

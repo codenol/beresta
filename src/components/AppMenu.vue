@@ -18,7 +18,7 @@ import IconChevronRight from '~icons/lucide/chevron-right'
 
 import { computed } from 'vue'
 
-import { useI18n, useInlineRename } from '@open-pencil/vue'
+import { useI18n, useInlineRename } from '@beresta/vue'
 import { useMenuUI } from '@/components/ui/menu'
 import { IS_TAURI } from '@/constants'
 import { useAppMenu } from '@/composables/use-app-menu'
@@ -74,7 +74,7 @@ const subMenuCls = useMenuUI({ content: 'min-w-44' })
 <template>
   <div class="shrink-0 border-b border-border">
     <div class="flex items-center gap-2 px-2 py-1.5">
-      <img data-test-id="app-logo" src="/favicon-32.png" class="size-4" alt="Береста" />
+      <img data-test-id="app-logo" src="/nork.svg" class="size-4" alt="Nork" />
       <input
         v-if="editingName"
         :ref="(el) => setNameInputRef(el as HTMLInputElement | null)"

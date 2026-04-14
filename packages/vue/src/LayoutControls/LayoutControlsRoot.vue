@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useLayout } from '@open-pencil/vue/controls/useLayout'
+defineOptions({ inheritAttrs: false })
+import { useLayout } from '@beresta/vue/controls/useLayout'
 
 const ctx = useLayout()
 </script>

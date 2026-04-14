@@ -79,7 +79,14 @@ export {
   type NamedStyle
 } from './scene-graph'
 
-export { libraryRegistry, LibraryRegistry, type LibraryManifest } from './library'
+export {
+  libraryRegistry,
+  LibraryRegistry,
+  type LibraryManifest,
+  buildPrimeReactGraph,
+  PRIMEREACT_CONNECT_DEFS,
+  type PrimeReactConnectDef,
+} from './library'
 export {
   exportTokens,
   exportCSSVariables,
@@ -352,12 +359,12 @@ export {
   parseFigmaClipboard,
   importClipboardNodes,
   figmaNodesBounds,
-  parseOpenPencilClipboard,
+  parseBerestaClipboard,
   buildFigmaClipboardHTML,
-  buildOpenPencilClipboardHTML,
+  buildBerestaClipboardHTML,
   prefetchFigmaSchema,
   type TextPictureBuilder,
-  type OpenPencilClipboardData
+  type BerestaClipboardData
 } from './clipboard'
 export { probeGlyphOutlineCommands, type GlyphOutlineProbe } from './text/opentype'
 

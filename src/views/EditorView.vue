@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router'
 import { useHead } from '@unhead/vue'
 import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from 'reka-ui'
 
-import { useViewportKind } from '@open-pencil/vue'
+import { useViewportKind } from '@beresta/vue'
 import { useKeyboard } from '@/composables/use-keyboard'
 import { useMenu } from '@/composables/use-menu'
 import { useCollab, COLLAB_KEY } from '@/composables/use-collab'
@@ -21,6 +21,7 @@ import EditorCanvas from '@/components/EditorCanvas.vue'
 import LayersPanel from '@/components/LayersPanel.vue'
 import MobileDrawer from '@/components/MobileDrawer.vue'
 import MobileHud from '@/components/MobileHud.vue'
+import PreviewPanel from '@/components/PreviewPanel.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import SafariBanner from '@/components/SafariBanner.vue'
 import TabBar from '@/components/TabBar.vue'
@@ -76,7 +77,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div data-test-id="editor-root" class="flex h-screen w-screen flex-col">
+  <div data-test-id="editor-root" class="flex h-full w-full flex-col">
     <SafariBanner />
     <TabBar />
 
@@ -97,11 +98,12 @@ onUnmounted(() => {
       >
         <div class="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2" />
       </SplitterResizeHandle>
-      <SplitterPanel :default-size="64" :min-size="30" class="flex">
+      <SplitterPanel :default-size="64" :min-size="30" class="flex flex-col">
         <div class="relative flex min-w-0 flex-1">
           <EditorCanvas />
           <Toolbar />
         </div>
+        <PreviewPanel />
       </SplitterPanel>
       <SplitterResizeHandle class="group relative z-10 -mx-1 w-2 cursor-col-resize">
         <div class="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2" />
@@ -142,7 +144,7 @@ onUnmounted(() => {
           v-if="!isMobile"
           class="absolute top-7 left-7 z-10 flex items-center gap-2 rounded-lg border border-border bg-panel px-2 py-1 shadow-sm"
         >
-          <img src="/favicon-32.png" class="size-4" alt="Береста" />
+          <img src="/nork.svg" class="size-4" alt="Nork" />
           <span data-test-id="editor-document-name" class="text-xs text-surface">{{
             store.state.documentName
           }}</span>

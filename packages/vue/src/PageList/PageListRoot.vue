@@ -1,7 +1,8 @@
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false })
 import { computed } from 'vue'
 
-import { usePageList } from '@open-pencil/vue/PageList/usePageList'
+import { usePageList } from '@beresta/vue/PageList/usePageList'
 
 const props = defineProps<{
   dividerPattern?: RegExp
