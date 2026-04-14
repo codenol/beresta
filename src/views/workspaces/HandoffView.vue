@@ -1,8 +1,55 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb, ScrollAreaViewport, SplitterGroup, SplitterPanel, SplitterResizeHandle, TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
 
 import { toast } from '@/utils/toast'
+import { useProjects } from '@/composables/use-projects'
+import { useWorkspaceFs, writeFeatureFile, readFeatureFile } from '@/composables/use-workspace-fs'
+
+const { context, workspacePath } = useProjects()
+const { isDesktop } = useWorkspaceFs()
+
+// ── Concept code preview ──────────────────────────────────────────────────────
+
+const conceptCode = ref('')
+
+async function loadConceptCode() {
+  if (!workspacePath.value || !context.value) return
+  const { productId, screenId, featureId } = context.value
+  conceptCode.value = await readFeatureFile(workspacePath.value, productId, screenId, featureId, 'concept.tsx')
+}
+
+async function saveHandoffMd() {
+  if (!workspacePath.value || !context.value) {
+    toast.error('Нет рабочей папки или контекста фичи')
+    return
+  }
+  const lines: string[] = ['# Handoff\n']
+  for (const section of docSections.value) {
+    lines.push(`## ${section.title}\n`)
+    lines.push(section.content)
+    lines.push('')
+  }
+  if (specRows.length) {
+    lines.push('## Спецификации\n')
+    lines.push('| Компонент | Свойство | Значение |')
+    lines.push('|-----------|----------|----------|')
+    for (const row of specRows) {
+      lines.push(`| ${row.component} | ${row.property} | ${row.value} |`)
+    }
+    lines.push('')
+  }
+  if (resourceLinks.length) {
+    lines.push('## Ресурсы\n')
+    for (const link of resourceLinks) {
+      lines.push(`- [${link.label}](${link.url})`)
+    }
+    lines.push('')
+  }
+  const { productId, screenId, featureId } = context.value
+  await writeFeatureFile(workspacePath.value, productId, screenId, featureId, 'handoff.md', lines.join('\n'))
+  toast.success('handoff.md сохранён')
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -112,6 +159,8 @@ const progressWidth = computed(() => {
   const map: Record<Step, string> = { 1: '0%', 2: '50%', 3: '100%' }
   return map[currentStep.value]
 })
+
+onMounted(loadConceptCode)
 </script>
 
 <template>
@@ -164,6 +213,17 @@ const progressWidth = computed(() => {
           'Скопировать ссылку'
         }}</span>
       </button>
+
+      <template v-if="isDesktop">
+        <div class="h-4 w-px bg-border" />
+        <button
+          class="flex items-center gap-1.5 rounded border border-border px-2.5 py-1.5 text-xs text-muted transition-colors hover:bg-hover hover:text-surface"
+          @click="saveHandoffMd"
+        >
+          <icon-lucide-save class="size-3.5" />
+          handoff.md
+        </button>
+      </template>
     </header>
 
     <!-- Body -->
@@ -309,7 +369,7 @@ const progressWidth = computed(() => {
         <TabsRoot v-model="activeDocTab" class="flex h-full flex-col overflow-hidden">
           <TabsList class="flex shrink-0 border-b border-border">
             <TabsTrigger
-              v-for="(label, value) in { documentation: 'Документация', specifications: 'Спецификации', links: 'Ссылки' }"
+              v-for="(label, value) in { documentation: 'Документация', specifications: 'Спецификации', links: 'Ссылки', code: 'Код' }"
               :key="value"
               :value="value"
               class="flex-1 border-b-2 border-transparent px-2 py-2 text-[11px] transition-colors data-[state=active]:border-accent data-[state=active]:text-accent"
@@ -424,6 +484,24 @@ const progressWidth = computed(() => {
                     <icon-lucide-external-link class="size-3.5 text-muted" />
                   </a>
                 </div>
+              </ScrollAreaViewport>
+              <ScrollAreaScrollbar orientation="vertical" class="w-1.5">
+                <ScrollAreaThumb class="rounded-full bg-border" />
+              </ScrollAreaScrollbar>
+            </ScrollAreaRoot>
+          </TabsContent>
+
+          <!-- Code tab -->
+          <TabsContent value="code" class="flex flex-1 flex-col overflow-hidden">
+            <div v-if="!conceptCode" class="flex flex-1 flex-col items-center justify-center gap-3 text-muted">
+              <icon-lucide-file-code class="size-8 opacity-30" />
+              <p class="text-center text-xs px-4">
+                {{ isDesktop ? 'concept.tsx не найден. Сгенерируйте его в шаге Аналитика.' : 'Доступно в десктоп-версии' }}
+              </p>
+            </div>
+            <ScrollAreaRoot v-else class="flex-1">
+              <ScrollAreaViewport class="h-full">
+                <pre class="p-3 font-mono text-[11px] leading-relaxed text-surface/80 whitespace-pre-wrap break-words">{{ conceptCode }}</pre>
               </ScrollAreaViewport>
               <ScrollAreaScrollbar orientation="vertical" class="w-1.5">
                 <ScrollAreaThumb class="rounded-full bg-border" />

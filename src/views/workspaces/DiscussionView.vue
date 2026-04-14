@@ -4,6 +4,33 @@ import { ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb, ScrollAreaViewpor
 
 import Tip from '@/components/ui/Tip.vue'
 import { toast } from '@/utils/toast'
+import { useProjects } from '@/composables/use-projects'
+import { useWorkspaceFs, writeFeatureFile } from '@/composables/use-workspace-fs'
+
+const { context, workspacePath } = useProjects()
+const { isDesktop } = useWorkspaceFs()
+
+async function saveDiscussionMd() {
+  if (!workspacePath.value || !context.value) {
+    toast.error('Нет рабочей папки или контекста фичи')
+    return
+  }
+  const lines: string[] = ['# Discussion\n']
+  for (const c of comments.value) {
+    lines.push(`## #${c.number} [${c.resolved ? 'resolved' : 'open'}] — ${c.author} (${c.time})`)
+    lines.push(`**Page:** ${c.page}\n`)
+    lines.push(c.text)
+    if (c.replies.length) {
+      for (const r of c.replies) {
+        lines.push(`\n> **${r.author}** (${r.time}): ${r.text}`)
+      }
+    }
+    lines.push('')
+  }
+  const { productId, screenId, featureId } = context.value
+  await writeFeatureFile(workspacePath.value, productId, screenId, featureId, 'discussion.md', lines.join('\n'))
+  toast.success('discussion.md сохранён')
+}
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
@@ -195,6 +222,16 @@ function countByFilter(f: FilterType) {
       <Tip label="Уведомления">
         <button class="flex size-7 items-center justify-center rounded text-muted hover:bg-hover hover:text-surface">
           <icon-lucide-bell class="size-4" />
+        </button>
+      </Tip>
+
+      <Tip v-if="isDesktop" label="Сохранить discussion.md" side="bottom">
+        <button
+          class="flex items-center gap-1.5 rounded border border-border px-2.5 py-1 text-xs text-muted transition-colors hover:bg-hover hover:text-surface"
+          @click="saveDiscussionMd"
+        >
+          <icon-lucide-save class="size-3.5" />
+          Сохранить
         </button>
       </Tip>
     </header>

@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { ScrollAreaRoot, ScrollAreaScrollbar, ScrollAreaThumb, ScrollAreaViewport, SplitterGroup, SplitterPanel, SplitterResizeHandle } from 'reka-ui'
+import { generateText } from 'ai'
 
 import Tip from '@/components/ui/Tip.vue'
 import { toast } from '@/utils/toast'
+import { createModel } from '@/composables/use-chat'
+import { useWorkspaceFs } from '@/composables/use-workspace-fs'
+
+const { workspacePath, writeDesignMd } = useWorkspaceFs()
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -139,6 +144,72 @@ function publish() {
   toast.info('Библиотека опубликована v1.5.0')
 }
 
+// ── DESIGN.md generation ──────────────────────────────────────────────────────
+
+const isGeneratingDesignMd = ref(false)
+
+async function generateDesignMd() {
+  const model = createModel()
+  if (!model) {
+    toast.error('Настройте AI-провайдер в настройках')
+    return
+  }
+  if (!workspacePath.value) {
+    toast.error('Откройте рабочую папку в Навигаторе проектов')
+    return
+  }
+
+  isGeneratingDesignMd.value = true
+  try {
+    const colorsTable = MOCK_COLORS.map(c => `| \`${c.name}\` | ${c.value} | ${c.group} |`).join('\n')
+    const typographyTable = MOCK_TYPOGRAPHY.map(t => `| ${t.name} | ${t.font} | ${t.size} | ${t.weight} | ${t.lineHeight} |`).join('\n')
+    const effectsTable = MOCK_EFFECTS.map(e => `| ${e.name} | ${e.description} | \`${e.value}\` |`).join('\n')
+    const componentsList = MOCK_COMPONENTS.map(c => `- **${c.name}**: ${c.description}`).join('\n')
+
+    const prompt = `You are a design system expert. Generate a DESIGN.md file in the Google Stitch format with exactly 9 sections based on this design library data.
+
+## Color Tokens
+| Name | Value | Group |
+|------|-------|-------|
+${colorsTable}
+
+## Typography Scale
+| Name | Font | Size | Weight | Line Height |
+|------|------|------|--------|-------------|
+${typographyTable}
+
+## Effects
+| Name | Description | Value |
+|------|-------------|-------|
+${effectsTable}
+
+## Components
+${componentsList}
+
+Generate a complete DESIGN.md with these 9 sections:
+1. Visual Theme & Atmosphere
+2. Color Palette & Roles
+3. Typography Rules
+4. Component Stylings
+5. Layout Principles
+6. Depth & Elevation
+7. Do's and Don'ts
+8. Responsive Behavior
+9. Agent Prompt Guide
+
+Use the actual library data provided above. Make it LLM-friendly and actionable. Write in English. Start with # DESIGN.md.`
+
+    const { text } = await generateText({ model, prompt })
+    await writeDesignMd(workspacePath.value, text)
+    toast.success('DESIGN.md сохранён в рабочую папку')
+  } catch (err) {
+    toast.error('Ошибка генерации DESIGN.md')
+    console.error(err)
+  } finally {
+    isGeneratingDesignMd.value = false
+  }
+}
+
 const sectionCounts: Record<Section, number> = {
   Colors: MOCK_COLORS.length,
   Typography: MOCK_TYPOGRAPHY.length,
@@ -177,6 +248,20 @@ const filteredEffects = computed(() =>
         <icon-lucide-upload class="size-3.5" />
         Опубликовать
       </button>
+
+      <div class="h-4 w-px bg-border" />
+
+      <Tip label="Сгенерировать DESIGN.md из библиотеки (AI)" side="bottom">
+        <button
+          class="flex items-center gap-1.5 rounded border border-border px-2.5 py-1 text-xs text-muted transition-colors hover:bg-hover hover:text-surface disabled:opacity-40"
+          :disabled="isGeneratingDesignMd"
+          @click="generateDesignMd"
+        >
+          <icon-lucide-sparkles v-if="!isGeneratingDesignMd" class="size-3.5" />
+          <icon-lucide-loader-circle v-else class="size-3.5 animate-spin" />
+          DESIGN.md
+        </button>
+      </Tip>
 
       <div class="h-4 w-px bg-border" />
 

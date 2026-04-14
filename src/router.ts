@@ -9,26 +9,32 @@ const router = createRouter({
     { path: '/', component: EditorView },
     { path: '/demo', component: EditorView, meta: { demo: true } },
     { path: '/share/:roomId', component: EditorView },
+
+    // Top-level: Project Navigator
+    {
+      path: '/projects',
+      component: () => import('./views/ProjectNavigatorView.vue'),
+    },
+
+    // Top-level: Library (global, shared across all projects)
+    {
+      path: '/library',
+      component: () => import('./views/workspaces/LibraryWorkspaceView.vue'),
+    },
+
+    // Workspace pipeline (4 steps)
     {
       path: '/workspace',
       component: WorkspaceLayout,
       children: [
-        { path: '', redirect: '/workspace/design' },
-        {
-          path: 'design',
-          component: () => import('./views/workspaces/DesignWorkspaceView.vue'),
-        },
+        { path: '', redirect: '/projects' },
         {
           path: 'analytics',
           component: () => import('./views/workspaces/AnalyticsView.vue'),
         },
         {
-          path: 'library',
-          component: () => import('./views/workspaces/LibraryWorkspaceView.vue'),
-        },
-        {
-          path: 'preview',
-          component: () => import('./views/workspaces/ReactPreviewView.vue'),
+          path: 'design',
+          component: () => import('./views/workspaces/DesignWorkspaceView.vue'),
         },
         {
           path: 'discussion',
